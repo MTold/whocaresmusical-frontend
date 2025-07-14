@@ -1,15 +1,19 @@
 <template>
-  <header class="user-header">
+  <header class="user-header":class="{ 'fixed': isFixed }">
     <div class="header-content">
-      <router-link to="/" class="logo-link">
-        <img src="@/assets/logo.png" alt="Logo" class="logo" />
-      </router-link>
+      <div class="logo-group">
+        <router-link to="/" class="logo-link">
+          <img src="@/assets/logo.png" alt="Logo" class="logo" />
+        </router-link>
+        <router-link to="/" class="logoslogan-link">
+          <img src="@/assets/logo_slogan.png" alt="Logoslogan" class="slogan" />
+        </router-link>
+      </div>
       <nav class="nav-tabs">
         <router-link to="/home" class="nav-tab" active-class="active">首页资讯</router-link>
         <router-link to="/theaters" class="nav-tab" active-class="active">剧院列表</router-link>
         <router-link to="/shows" class="nav-tab" active-class="active">演出列表</router-link>
         <router-link to="/profile" class="nav-tab" active-class="active">个人中心</router-link>
-
       </nav>
     </div>
   </header>
@@ -36,13 +40,27 @@
   padding: 0 24px;
   height: 64px;
 }
+.user-header.fixed {
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+.logo-group {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0; /* 防止logo区域被压缩 */
+}
 .logo-link {
   display: flex;
   align-items: center;
   height: 100%;
 }
 .logo {
-  height: 40px;
+  height: 80px;
+  width: auto;
+}
+.slogan {
+  height: 80px;
   width: auto;
 }
 .nav-tabs {
