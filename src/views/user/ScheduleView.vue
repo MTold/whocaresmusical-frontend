@@ -1,15 +1,16 @@
 <template>
   <div class="schedule-view">
-    <!-- 主内容区 -->
     <div class="main-content">
-      <!-- 左侧日历组件 -->
       <div class="calendar">
-        <!-- 日历组件 -->
-        <CalendarComponent @date-click="fetchShows" />
+        <!-- Element Plus 日历组件 -->
+        <el-calendar
+          v-model="selectedDate"
+          @pick="handleDateChange"
+        :show-week-numbers="true"
+        :first-day-of-week="1"
+        />
       </div>
-      <!-- 右侧剧目信息 -->
       <div class="show-details">
-        <!-- 显示当天的剧目信息 -->
         <div v-if="shows.length > 0">
           <ul>
             <li v-for="show in shows" :key="show.id">
@@ -18,7 +19,6 @@
           </ul>
         </div>
         <div v-else>
-          <!-- 如果没有剧目信息 -->
           <p>没有该日期的剧目信息。</p>
         </div>
       </div>
@@ -27,92 +27,155 @@
 </template>
 
 <script lang="ts">
-import CalendarComponent from '../../components/common/Calendar.vue';  // 引入日历组件
+import { defineComponent, ref, watch } from 'vue';
+import { ElCalendar } from 'element-plus';
 
-export default {
-  components: { CalendarComponent },  // 注册日历组件
-  data() {
-    return {
-      shows: [],  // 存储当天的剧目信息
-    };
+export default defineComponent({
+  components: {
+    ElCalendar
   },
-  methods: {
-    // 通过传入的日期从后端获取剧目信息
-    async fetchShows(date) {
-      try {
-        // 发起请求获取剧目信息
-        const response = await this.$http.get(`/api/shows?date=${date}`);
-        this.shows = response.data;  // 更新当天的剧目信息
-      } catch (error) {
-        console.error('Error fetching shows:', error);
+  setup() {
+    const selectedDate = ref(null);  // 用于存储选中的日期
+    const shows = ref([]);
+
+    // 模拟剧目信息
+    const showData = {
+      "2025-07-15": [
+        { id: 1, time: '10:00', name: 'Show 1', cast: 'Cast 1' },
+        { id: 2, time: '14:00', name: 'Show 2', cast: 'Cast 2' }
+      ],
+      "2025-07-16": [
+        { id: 3, time: '11:00', name: 'Show 3', cast: 'Cast 3' },
+        { id: 4, time: '15:00', name: 'Show 4', cast: 'Cast 4' }
+      ],
+      "2025-07-17": [
+        { id: 5, time: '12:00', name: 'Show 5', cast: 'Cast 5' },
+        { id: 6, time: '16:00', name: 'Show 6', cast: 'Cast 6' }
+      ]
+    };
+
+    // 日期变化时触发的函数
+    const handleDateChange = (date: Date) => {
+      // 格式化选中的日期为 "YYYY-MM-DD"
+      const selectedDateString = date.toISOString().split('T')[0];
+      shows.value = showData[selectedDateString] || [];  // 根据日期显示剧目信息
+    };
+
+    // 确保选中的日期发生变化时，右侧显示剧目信息
+    watch(selectedDate, (newVal) => {
+      console.log('selectedDate changed:', newVal);
+      if (newVal) {
+        handleDateChange(newVal);
       }
-    }
+    });
+
+    return {
+      selectedDate,
+      shows,
+      handleDateChange
+    };
   }
-};
+});
 </script>
 
 <style scoped>
+/* 添加 Element Plus 主题变量（可选） */
+:deep(.el-calendar) {
+  --el-calendar-border: none;
+  --el-calendar-cell-width: 40px;
+}
+
 .schedule-view {
-  /* 设置整体容器布局，取消垂直居中 */
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 20px;  /* 设置和Header的距离 */
+  padding: 30px;
+  background-color: #e8f4fd;
+  height: 100vh; /* 确保背景色覆盖整个页面 */
 }
 
-/* 主内容区布局 */
 .main-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  padding: 20px;
+  gap: 100px; /* 增加间距，让板块分开 */
+  padding: 50px;
   max-width: 1200px;
   width: 100%;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 投影效果 */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #fff; /* 白色背景 */
+  margin-top: 30px; /* 调整顶部空隙 */
+  padding-bottom: 50px; /* 底部空隙 */
 }
 
 /* 左侧日历区域样式 */
 .calendar {
-  background-color: #f2e1ae;  /* 使用色卡中的颜色 */
+  width: 100%;
+  height: 70vh;
   padding: 20px;
+  background-color: #f9f9f9; /* 背景色调整 */
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  overflow: auto; /* 使内容溢出时可以滚动 */
+}
+
+/* 日历头部样式 */
+:deep(.el-calendar__header) {
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+  border-bottom: 1px solid #e2e2e2;
+  background-color: #f0f0f0;
+}
+
+/* 日历单元格样式 */
+:deep(.el-calendar-day) {
+  height: 40px;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 8px;  /* 圆角 */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);  /* 投影效果 */
+  font-size: 14px;
+}
+
+/* 当前日期的样式 (设置为方形) */
+:deep(.el-calendar-table td.is-selected) {
+  background-color: #5c6bc0;
+  color: white;
+  border-radius: 2px;
 }
 
 /* 右侧剧目信息区域样式 */
 .show-details {
-  background-color: #d2d3d9;  /* 使用色卡中的颜色 */
-  padding: 20px;
+  background-color: #ffffff;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  border-radius: 8px;  /* 圆角 */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);  /* 投影效果 */
+  gap: 10px; /* 增加间距 */
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* 显示剧目信息的列表样式 */
+/* 剧目信息列表样式 */
 .show-details ul {
-  list-style-type: none;  /* 去掉列表符号 */
-  padding: 0;
+  list-style-type: none;
+  padding: 10px;
+  margin: 0;
 }
 
 /* 每一条剧目信息 */
 .show-details li {
-  background-color: #fff;  /* 背景色 */
-  padding: 15px;
-  border-radius: 6px;  /* 圆角 */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);  /* 投影效果 */
-  color: #59310e;  /* 字体颜色，与主题色协调 */
+  background-color: #f3f5f9;
+  padding: 20px;
+  margin:20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  color: #333;
+  font-size: 16px;
 }
 
 /* 剧目信息中的文字 */
 .show-details p {
   margin: 0;
-  font-size: 16px;
-  color: #8c837b;  /* 使用色卡中的颜色 */
+  color: #666;
 }
 </style>
