@@ -91,7 +91,7 @@ export default defineComponent({
   align-items: center;
   padding: 30px;
   background-color: #e8f4fd;
-  height: 100vh; /* 确保背景色覆盖整个页面 */
+  height: 100vh;
 }
 
 .main-content {
