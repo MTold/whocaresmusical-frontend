@@ -90,7 +90,7 @@ export default defineComponent({
   flex-direction: column;
   align-items: center;
   padding: 30px;
-  background-color: #e8f4fd;
+  background-color: #fafaf8;
   height: 100vh;
 }
 

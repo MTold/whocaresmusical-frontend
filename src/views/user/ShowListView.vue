@@ -69,7 +69,7 @@ export default defineComponent({
 <style scoped>
 .all-shows-view {
   padding: 30px;
-  background-color: #f4f9fd;
+  background-color: #fafaf8;
   display: flex;
   flex-direction: column;
   align-items: center;
