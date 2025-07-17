@@ -18,7 +18,7 @@
           v-for="show in filteredShows"
           :key="show.id"
           class="show-item"
-        >
+          @click="goToDetail(show.id)">
           <img :src="show.image" alt="Show image" class="show-image" />
           <p class="show-name">{{ show.name }}</p>
         </div>
@@ -32,9 +32,11 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   setup() {
+    const router = useRouter(); // 使用 Vue Router
     const searchQuery = ref('');
     const selectedCategory = ref('');
     const categories = ref(['Ca1', 'Ca2', 'Ca3', 'ca4']); // 示例分类
@@ -56,11 +58,17 @@ export default defineComponent({
       });
     });
 
+    // 跳转到详细介绍页面的函数
+   const goToDetail = (id: number) => {
+    router.push(`/shows/${id}`);
+  };
+
     return {
       searchQuery,
       selectedCategory,
       categories,
       filteredShows,
+      goToDetail,
     };
   }
 });

@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
 import UserHeader from './components/layout/UserHeader.vue'
-import UserFooter from './components/layout/UserFooter.vue' // 导入 UserFooter 组件
+import UserFooter from './components/layout/UserFooter.vue'
 </script>
 
 <template>
@@ -11,7 +10,7 @@ import UserFooter from './components/layout/UserFooter.vue' // 导入 UserFooter
         <UserHeader />
       </el-header>
       <el-main>
-        <RouterView />
+        <router-view /> <!-- 只需要这个，路由由 main.ts 挂载 -->
       </el-main>
     </el-container>
     <UserFooter />
@@ -29,7 +28,7 @@ import UserFooter from './components/layout/UserFooter.vue' // 导入 UserFooter
   display: flex;
   flex-direction: column;
   height: 100%;
-  margin-bottom: 60px; /* 留出底栏高度 */
+  margin-bottom: 60px;
 }
 
 .el-container {

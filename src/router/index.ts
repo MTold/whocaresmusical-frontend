@@ -4,6 +4,7 @@ import ScheduleView from '../views/user/ScheduleView.vue'
 import TheaterListView from '../views/user/TheaterListView.vue'
 import ShowListView from '../views/user/ShowListView.vue'
 import ProfileLayout from '../views/profile/ProfileLayout.vue'
+import ShowDetailView from '../views/user/ShowDetailView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -29,11 +30,16 @@ const router = createRouter({
       component: ShowListView,
     },
     {
+      path: '/shows/:id',
+      name: 'ShowDetail',
+      props: true,
+      component: ShowDetailView
+    },
+    {
       path: '/profile',
       name: 'profile',
       component: ProfileLayout,
-    },
-
+    }
   ],
 })
 
