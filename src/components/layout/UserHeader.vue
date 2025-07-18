@@ -1,5 +1,5 @@
 <template>
-  <header class="user-header":class="{ 'fixed': isFixed }">
+  <header class="user-header">
     <div class="header-content">
       <div class="logo-group">
         <router-link to="/" class="logo-link">
@@ -15,6 +15,12 @@
         <router-link to="/theaters" class="nav-tab" active-class="active">剧院列表</router-link>
         <router-link to="/shows" class="nav-tab" active-class="active">演出列表</router-link>
         <router-link to="/profile" class="nav-tab" active-class="active">个人中心</router-link>
+        <el-button class="user-icon-btn" type="text" @click="$router.push('/login')">
+          <svg class="user-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="8" r="4" stroke="#59310E" stroke-width="2"/>
+            <path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="#59310E" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </el-button>
       </nav>
     </div>
   </header>
@@ -84,6 +90,21 @@
 .active {
   background: #D2D3D9;
   color: #59310E;
+}
+.user-icon-btn {
+  margin-left: 16px;
+  padding: 0;
+  min-width: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  vertical-align: middle;
+  position: relative;
+  top: 5px;
+}
+.user-icon {
+  display: inline-block;
+  vertical-align: middle;
 }
 @media (max-width: 768px) {
   .header-content {

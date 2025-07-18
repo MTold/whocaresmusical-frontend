@@ -1,7 +1,7 @@
 <template>
   <div class="register-container">
     <el-card class="register-card">
-      <h2 class="register-title">注册账号</h2>
+      <h2 class="register-title">用户注册</h2>
       <el-form :model="registerForm" ref="registerFormRef" label-width="80px">
         <el-form-item label="手机号" prop="phone">
           <el-input v-model="registerForm.phone" placeholder="请输入手机号" />
@@ -22,7 +22,7 @@
           <el-input v-model="registerForm.confirmPassword" type="password" placeholder="请再次输入密码" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="onRegister">注册</el-button>
+          <el-button class="register-btn" type="primary" @click="onRegister">注册</el-button>
         </el-form-item>
       </el-form>
       <div class="register-links">
@@ -33,11 +33,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
-
-const router = useRouter();
 
 const registerForm = ref({
   phone: '',
@@ -75,14 +72,6 @@ const onSendCode = () => {
   }, 1000);
 };
 
-onMounted(() => {
-  const role = localStorage.getItem('loginRole');
-  if (role === 'admin') {
-    ElMessage.warning('仅用户可注册');
-    router.replace('/login');
-  }
-});
-
 const onRegister = () => {
   if (!registerForm.value.phone && !registerForm.value.email) {
     ElMessage.warning('请填写手机号或邮箱');
@@ -110,7 +99,9 @@ const onRegister = () => {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: #f7f1ea;
+  background: url('@/assets/login_bg.png') center center/cover no-repeat;
+  position: relative;
+  top: -70px;
 }
 .register-card {
   width: 400px;
@@ -127,6 +118,27 @@ const onRegister = () => {
   font-weight: bold;
   color: #59310E;
 }
+.el-form-item__label {
+  color: #8C837B;
+  font-weight: 500;
+}
+.el-input__wrapper {
+  background: #f7f1ea;
+  border: 1px solid #bfa074;
+  border-radius: 6px;
+}
+.register-btn {
+  background: #bfa074;
+  border: none;
+  color: #fff;
+  font-weight: bold;
+  width: 100%;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+.register-btn:hover {
+  background: #59310E;
+}
 .register-links {
   display: flex;
   justify-content: center;
@@ -137,5 +149,6 @@ const onRegister = () => {
   color: #bfa074;
   text-decoration: underline;
   cursor: pointer;
+  font-weight: 500;
 }
 </style>
