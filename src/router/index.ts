@@ -5,6 +5,8 @@ import TheaterListView from '../views/user/TheaterListView.vue'
 import ShowListView from '../views/user/ShowListView.vue'
 import ProfileLayout from '../views/profile/ProfileLayout.vue'
 import ShowDetailView from '../views/user/ShowDetailView.vue'
+import LoginView from '../views/user/LoginView.vue'
+import ForgotPasswordView from '../views/user/ForgotPasswordView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,7 +46,22 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: ProfileLayout,
-    }
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+    },
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: ForgotPasswordView,
+    },
+    {
+      path: '/user-register',
+      name: 'user-register',
+      component: () => import('../views/user/UserRegisterView.vue')
+    },
   ],
 })
 
