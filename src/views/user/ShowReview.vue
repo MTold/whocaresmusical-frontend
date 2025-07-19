@@ -153,7 +153,18 @@ const performanceId = Number(route.params.id) || 1; // 使用默认ID或提供�
 
 const showName = ref('剧目名称'); // 将动态获取剧目名称
 const reviews = ref([]);
-const reviewStatistics = ref({
+interface ReviewStatistics {
+  totalCount: number;
+  averageRating: number;
+  rating1Count: number;
+  rating2Count: number;
+  rating3Count: number;
+  rating4Count: number;
+  rating5Count: number;
+  [key: string]: number; // 支持动态属性访问
+}
+
+const reviewStatistics = ref<ReviewStatistics>({
   totalCount: 0,
   averageRating: 0,
   rating1Count: 0,
