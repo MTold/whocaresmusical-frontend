@@ -36,6 +36,11 @@ const router = createRouter({
       component: ShowDetailView
     },
     {
+      path: '/shows/:id/review',
+      name: 'ShowReview',
+      component: () => import('../views/user/ShowReview.vue')
+    },
+    {
       path: '/profile',
       name: 'profile',
       component: ProfileLayout,
