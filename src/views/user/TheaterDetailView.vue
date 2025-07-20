@@ -1,0 +1,490 @@
+<template>
+  <div class="theater-detail-layout">
+    <!-- 左侧：剧院图片和名称 -->
+    <div class="left-panel">
+      <div class="theater-img-wrapper">
+        <img :src="theater.image" alt="剧院图片" class="theater-img" v-if="theater.image" />
+      </div>
+      <div class="theater-name">{{ theater.name }}</div>
+    </div>
+
+    <!-- 中间：类型选择栏 + 店铺列表 -->
+    <div class="center-panel">
+      <!-- 棕色竖线分割 -->
+      <div class="divider"></div>
+      <div class="sidebar">
+        <div
+          v-for="(type, idx) in shopTypes"
+          :key="type.value"
+          :class="[
+            'sidebar-item',
+            { active: selectedType === type.value },
+            idx === 0 ? 'first' : '',
+            idx === shopTypes.length - 1 ? 'last' : '',
+          ]"
+          @click="selectedType = type.value"
+        >
+          <span class="vertical-text">{{ type.label }}</span>
+        </div>
+      </div>
+      <div class="shop-list">
+        <div
+          v-for="shop in filteredShops"
+          :key="shop.id"
+          class="shop-card"
+          @click="selectShop(shop)"
+        >
+          <img :src="shop.image" alt="店铺图片" class="shop-img" />
+          <div class="shop-name">{{ shop.name }}</div>
+        </div>
+        <div v-if="filteredShops.length === 0" class="no-shop">暂无相关店铺</div>
+      </div>
+    </div>
+
+    <!-- 右侧：店铺评价 -->
+    <div class="right-panel">
+      <div v-if="selectedShop">
+        <div class="shop-title">{{ selectedShop.name }} 的用户评价</div>
+        <div class="review-list">
+          <div v-if="reviews[selectedShop.id]?.length">
+            <div v-for="(review, idx) in reviews[selectedShop.id]" :key="idx" class="review-item">
+              {{ review }}
+            </div>
+          </div>
+          <div v-else class="no-review">暂无评价</div>
+        </div>
+        <div class="review-input">
+          <input
+            v-model="newReview"
+            type="text"
+            placeholder="输入你的评价"
+            @keyup.enter="submitReview"
+          />
+          <button @click="submitReview">发送</button>
+        </div>
+      </div>
+      <div v-else class="no-shop-selected">请选择一个店铺查看评价</div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const id = route.params.id // 当前剧院id
+
+// 模拟剧院信息，实际可通过API获取
+const theater = ref({
+  id,
+  name: '国家大剧院',
+  image: 'https://img1.doubanio.com/pview/drama_subject_poster/m/public/c18ea468e1fbf29.jpg',
+})
+
+// 店铺类型
+const shopTypes = [
+  { label: '周边美食', value: 'food' },
+  { label: '周边住宿', value: 'hotel' },
+  { label: '周边游玩', value: 'fun' },
+]
+const selectedType = ref('food')
+
+// 模拟店铺数据，实际可通过API获取
+const shops = ref([
+  // 美食
+  {
+    id: 1,
+    name: '老北京炸酱面好吃好吃好吃好吃啊啊啊',
+    image: 'https://img1.doubanio.com/pview/drama_subject_poster/m/public/c18ea468e1fbf29.jpg',
+    type: 'food',
+  },
+  {
+    id: 2,
+    name: '全聚德烤鸭',
+    image: 'https://img1.doubanio.com/view/photo/l/public/p2575466404.webp',
+    type: 'food',
+  },
+  // 住宿
+  {
+    id: 3,
+    name: '北京饭店',
+    image: 'https://img1.doubanio.com/view/photo/l/public/p2575466405.webp',
+    type: 'hotel',
+  },
+  {
+    id: 4,
+    name: '王府井大酒店',
+    image: 'https://img1.doubanio.com/view/photo/l/public/p2575466406.webp',
+    type: 'hotel',
+  },
+  // 游玩
+  {
+    id: 5,
+    name: '故宫博物院',
+    image: 'https://img1.doubanio.com/view/photo/l/public/p2575466407.webp',
+    type: 'fun',
+  },
+  {
+    id: 6,
+    name: '天安门广场',
+    image: 'https://img1.doubanio.com/view/photo/l/public/p2575466408.webp',
+    type: 'fun',
+  },
+])
+
+// 当前类型下的店铺
+const filteredShops = computed(() => shops.value.filter((s) => s.type === selectedType.value))
+
+// 当前选中的店铺
+const selectedShop = ref<(typeof shops.value)[0] | null>(null)
+
+// 评价数据，key为店铺id
+const reviews = ref<Record<number, string[]>>({
+  1: ['面很好吃', '环境不错'],
+  2: ['烤鸭一绝'],
+  3: [],
+  4: [],
+  5: ['值得一游'],
+  6: [],
+})
+
+// 新评价内容
+const newReview = ref('')
+
+// 选择店铺
+function selectShop(shop: (typeof shops.value)[0]) {
+  selectedShop.value = shop
+  newReview.value = ''
+}
+
+// 发送评价
+function submitReview() {
+  if (selectedShop.value && newReview.value.trim()) {
+    if (!reviews.value[selectedShop.value.id]) {
+      reviews.value[selectedShop.value.id] = []
+    }
+    reviews.value[selectedShop.value.id].push(newReview.value.trim())
+    newReview.value = ''
+  }
+}
+
+// 页面加载时默认选中第一个店铺
+onMounted(() => {
+  if (filteredShops.value.length > 0) {
+    selectShop(filteredShops.value[0])
+  }
+})
+</script>
+
+<style scoped>
+.theater-detail-layout {
+  display: flex;
+  width: 100vw;
+  min-height: 100vh;
+  background: #fafaf8;
+  box-sizing: border-box;
+  padding: 40px 0;
+}
+
+/* 左侧剧院信息 */
+.left-panel {
+  width: 33.33%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 30px;
+}
+.theater-img-wrapper {
+  width: 320px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5e9dd;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+.theater-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 保证图片不变形且铺满区域 */
+  display: block;
+}
+.theater-name {
+  font-size: 28px;
+  font-weight: bold;
+  color: #5c4326;
+  text-align: center;
+}
+
+/* 中间区域 */
+.center-panel {
+  width: 33.33%;
+  display: flex;
+  flex-direction: row;
+  border-left: none;
+  border-right: 1px solid #eee;
+  min-height: 600px;
+  position: relative;
+}
+
+/* 棕色竖线分割 */
+.divider {
+  width: 4px;
+  background: #5c4326;
+  height: 100%;
+  margin-right: 0;
+  border-radius: 2px;
+}
+
+/* 侧边栏 */
+.sidebar {
+  width: 60px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 0;
+  gap: 0; /* 按钮无间隙 */
+  margin-left: -2px; /* 让按钮更贴近分割线 */
+}
+.sidebar-item {
+  width: 48px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: transparent;
+  border-radius: 3px; /*让按钮更圆润*/
+  margin-bottom: 5px; /* 按钮间距 */
+  transition: background 0.2s;
+}
+.sidebar-item .vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 18px;
+  color: #5c4326;
+  letter-spacing: 2px;
+  user-select: none;
+  font-weight: normal;
+}
+.sidebar-item.active {
+  background: #e4c9b0;
+}
+.sidebar-item.active .vertical-text {
+  font-weight: bold;
+  color: #5c4326;
+}
+.sidebar-item:not(.active):hover {
+  background: #f5e9dd;
+}
+
+/* 店铺列表 */
+.shop-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 30px;
+  gap: 18px;
+  overflow-y: auto;
+}
+.shop-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+  position: relative;
+}
+.shop-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.13);
+}
+.shop-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-right: 18px;
+}
+.shop-name {
+  font-size: 18px;
+  color: #333;
+  /* 让店铺名居于图片右侧和卡片右侧的中间 */
+  position: absolute; /* 相对于卡片定位 */
+  left: 120px; /* 图片宽度 */
+  right: 0; /* 卡片右侧 */
+  margin-left: 18px; /* 图片和文字间距 */
+  width: calc(50% + 30px); /* 让文字居中于图片右侧和卡片右侧之间 */
+  top: 50%;
+  transform: translateY(-50%);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 右侧评价区 */
+.right-panel {
+  width: 26.66%; /* 原来33.33%，缩小五分之一 */
+  display: flex;
+  flex-direction: column;
+  padding: 0 30px;
+  min-height: 600px;
+}
+.shop-title {
+  font-size: 22px;
+  font-weight: bold;
+  color: #5c4326;
+  margin-bottom: 18px;
+  margin-top: 20px;
+}
+.review-list {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 18px;
+}
+.review-item {
+  background: #f5e9dd;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  color: #5c4326;
+  word-break: break-all; /* 长度超出自动换行 */
+  white-space: pre-line;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.no-review {
+  color: #aaa;
+  text-align: center;
+  margin-top: 40px;
+}
+.no-shop-selected {
+  color: #aaa;
+  text-align: center;
+  margin-top: 80px;
+  font-size: 18px;
+}
+.review-input {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.review-input input {
+  flex: 1;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 8px 12px;
+  font-size: 16px;
+}
+.review-input button {
+  padding: 8px 18px;
+  border-radius: 5px;
+  border: none;
+  background-color: #e4c9b0;
+  color: #5c4326;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.review-input button:hover {
+  background-color: #d1b295;
+}
+
+/* 保证三大区域不会被压缩到太小 */
+.left-panel,
+.center-panel,
+.right-panel {
+  min-width: 260px;
+  box-sizing: border-box;
+}
+
+/* 当屏幕宽度较小时，改为纵向堆叠布局 */
+@media (max-width: 900px) {
+  .theater-detail-layout {
+    flex-direction: column;
+    padding: 20px 0;
+  }
+  .left-panel,
+  .center-panel,
+  .right-panel {
+    width: 100% !important;
+    min-width: 0;
+    padding: 0 10px;
+  }
+  .center-panel {
+    border-right: none;
+    border-left: none;
+    min-height: 0;
+  }
+  .divider {
+    display: none;
+  }
+  .sidebar {
+    flex-direction: row;
+    width: 100%;
+    height: 48px;
+    padding: 0;
+    margin-left: 0;
+    margin-bottom: 10px;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  .sidebar-item,
+  .sidebar-item.first,
+  .sidebar-item.last {
+    width: 80px;
+    height: 48px;
+    border-radius: 0 0 18px 18px;
+    margin-bottom: 0;
+    margin-right: 8px;
+    position: relative;
+  }
+  .sidebar-item .vertical-text {
+    writing-mode: horizontal-tb;
+    font-size: 16px;
+    letter-spacing: 1px;
+  }
+  .shop-list {
+    padding: 10px 0;
+  }
+  .shop-card {
+    min-width: 0;
+    padding: 8px 10px;
+  }
+  .shop-img {
+    width: 60px;
+    height: 60px;
+  }
+  .shop-name {
+    position: static;
+    width: auto;
+    margin-left: 12px;
+    top: auto;
+    transform: none;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+}
+
+/* 防止图片过小或过大 */
+.theater-img-wrapper {
+  min-width: 180px;
+  min-height: 120px;
+  max-width: 100vw;
+  max-height: 40vw;
+}
+.theater-img {
+  min-width: 120px;
+  min-height: 80px;
+  max-width: 100%;
+  max-height: 100%;
+}
+</style>
