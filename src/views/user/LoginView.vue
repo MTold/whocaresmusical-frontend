@@ -85,7 +85,8 @@ const onLogin = () => {
   height: 100vh;
   background: url('/src/assets/login_bg.png') center center / cover no-repeat;
   position: relative;
-  top: -70px;
+  top: 0;
+  margin-top: -45px;
 }
 .login-card {
   width: 400px;

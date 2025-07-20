@@ -12,14 +12,27 @@ const routes = [
       { path: 'shows', name: 'shows', component: () => import('@/views/user/ShowListView.vue') },
       { path: 'shows/:id', name: 'ShowDetail', props: true, component: () => import('@/views/user/ShowDetailView.vue') },
       { path: 'shows/:id/review', name: 'ShowReview', component: () => import('@/views/user/ShowReview.vue') },
-      { path: 'profile', name: 'profile', component: () => import('@/views/profile/ProfileLayout.vue') },
+      {
+        path: 'profile',
+        component: () => import('@/views/profile/ProfileLayout.vue'),
+        children: [
+          { path: '', redirect: { name: 'MyInfo' } },
+          { path: 'my-info', name: 'MyInfo', component: () => import('@/views/profile/MyInfo.vue') },
+          { path: 'my-reviews', name: 'MyReviews', component: () => import('@/views/profile/MyReviews.vue') },
+          { path: 'favorite-shows', name: 'FavoriteShows', component: () => import('@/views/profile/FavoriteShows.vue') },
+          { path: 'browse-history', name: 'BrowseHistory', component: () => import('@/views/profile/BrowseHistory.vue') },
+          { path: 'faq', name: 'FAQ', component: () => import('@/views/profile/FAQ.vue') },
+          { path: 'messages', name: 'Messages', component: () => import('@/views/profile/Messages.vue') },
+        ]
+      },
       { path: 'user-register', name: 'user-register', component: () => import('@/views/user/UserRegisterView.vue') },
+      { path: 'login', name: 'login', component: () => import('@/views/user/LoginView.vue') },
+      { path: 'forgot-password', name: 'forgot-password', component: () => import('@/views/user/ForgotPasswordView.vue') },
     ]
   },
 
   /* 公共页面，不挂在任何布局里（无头无尾） */
-  { path: '/login', name: 'login', component: () => import('@/views/user/LoginView.vue') },
-  { path: '/forgot-password', name: 'forgot-password', component: () => import('@/views/user/ForgotPasswordView.vue') },
+  // { path: '/forgot-password', name: 'forgot-password', component: () => import('@/views/user/ForgotPasswordView.vue') },
 
   /* 管理员区 */
   {

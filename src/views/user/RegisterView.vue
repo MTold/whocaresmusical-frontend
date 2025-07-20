@@ -109,8 +109,8 @@ const onRegister = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background: #f7f1ea;
+  height: calc(100vh - 64px);
+  background: url('@/assets/login_bg.png') center calc(40px + 50%) / cover no-repeat;
 }
 .register-card {
   width: 400px;

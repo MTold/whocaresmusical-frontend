@@ -39,7 +39,7 @@ const onSend = () => {
   height: 100vh;
   background: url('@/assets/login_bg.png') center center/cover no-repeat;
   position: relative;
-  top: -70px;
+  top: 0;
 }
 .forgot-card {
   width: 400px;
