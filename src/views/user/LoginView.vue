@@ -2,31 +2,49 @@
   <div class="login-container">
     <el-card class="login-card">
       <h2 class="login-title">登录</h2>
+
+      <!-- 身份选择 -->
       <div class="role-select">
         <el-radio-group v-model="role">
           <el-radio-button label="user">用户</el-radio-button>
           <el-radio-button label="admin">管理员</el-radio-button>
         </el-radio-group>
       </div>
+
+      <!-- 表单 -->
       <el-form :model="loginForm" ref="loginFormRef" label-width="80px">
         <el-form-item label="账号" prop="account">
           <el-input v-model="loginForm.account" placeholder="账号/手机号/邮箱" />
         </el-form-item>
+
         <el-form-item label="密码" prop="password">
           <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" />
         </el-form-item>
+
         <el-form-item>
           <el-button class="login-btn" type="primary" @click="onLogin">登录</el-button>
         </el-form-item>
       </el-form>
-      <div v-if="role === 'user'" class="login-links">
-        <router-link to="/user-register" class="link">注册账号</router-link>
-        <span class="divider">|</span>
-        <router-link to="/forgot-password" class="link">忘记密码？</router-link>
-      </div>
-      <div v-else class="login-links">
-        <router-link to="/forgot-password" class="link">忘记密码？</router-link>
-      </div>
+
+      <!-- 卡片底部链接 -->
+      <template #footer>
+        <div class="login-links-box">
+          <!-- 第一行：注册账号 | 忘记密码？ -->
+          <div v-if="role === 'user'" class="line1">
+            <router-link to="/user-register" class="link">注册账号</router-link>
+            <span class="divider">|</span>
+            <router-link to="/forgot-password" class="link">忘记密码？</router-link>
+          </div>
+          <div v-else class="line1">
+            <router-link to="/forgot-password" class="link">忘记密码？</router-link>
+          </div>
+
+          <!-- 第二行：放弃登录，返回首页 -->
+          <div class="line2">
+            <router-link to="/" class="link">放弃登录，返回首页</router-link>
+          </div>
+        </div>
+      </template>
     </el-card>
   </div>
 </template>
@@ -34,16 +52,28 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { ElMessage } from 'element-plus';
+import { useRouter } from 'vue-router';
 
 const role = ref<'user' | 'admin'>('user');
-const loginForm = ref({
-  account: '',
-  password: ''
-});
+const loginForm = ref({ account: '', password: '' });
 const loginFormRef = ref();
+const router = useRouter();
 
 const onLogin = () => {
-  ElMessage.info(`以${role.value === 'user' ? '用户' : '管理员'}身份登录功能待实现`);
+  loginFormRef.value.validate((valid: boolean) => {
+    if (!valid) return;
+
+    const { account, password } = loginForm.value;
+    if (role.value === 'admin' && account === '15621310003' && password === '10003') {
+      localStorage.setItem('isAdmin', 'true');
+      ElMessage.success('管理员登录成功');
+      router.replace('/admin');
+    } else if (role.value === 'user') {
+      ElMessage.info('用户登录功能待实现');
+    } else {
+      ElMessage.error('账号或密码错误');
+    }
+  });
 };
 </script>
 
@@ -53,14 +83,14 @@ const onLogin = () => {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: url('/src/assets/login_bg.png') center center/cover no-repeat;
+  background: url('/src/assets/login_bg.png') center center / cover no-repeat;
   position: relative;
   top: -70px;
 }
 .login-card {
   width: 400px;
-  padding: 40px 30px 30px 30px;
-  box-shadow: 0 2px 16px rgba(89,49,14,0.12);
+  padding: 40px 30px 30px;
+  box-shadow: 0 2px 16px rgba(89, 49, 14, 0.12);
   border-radius: 16px;
   background: #fff8f0;
   border: 1.5px solid #bfa074;
@@ -70,21 +100,16 @@ const onLogin = () => {
   margin-bottom: 18px;
   font-size: 24px;
   font-weight: bold;
-  color: #59310E;
+  color: #59310e;
 }
 .role-select {
   display: flex;
   justify-content: center;
   margin-bottom: 18px;
 }
-.el-radio-group {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
 .el-radio-button__inner {
   background: #f2e1ae !important;
-  color: #59310E !important;
+  color: #59310e !important;
   border: 1.5px solid #bfa074 !important;
   font-weight: bold;
   transition: background 0.2s, color 0.2s;
@@ -96,10 +121,10 @@ const onLogin = () => {
 }
 .el-radio-button__inner:hover {
   background: #e2cfa2 !important;
-  color: #59310E !important;
+  color: #59310e !important;
 }
 .el-form-item__label {
-  color: #8C837B;
+  color: #8c837b;
   font-weight: 500;
 }
 .el-input__wrapper {
@@ -117,22 +142,20 @@ const onLogin = () => {
   transition: background 0.2s;
 }
 .login-btn:hover {
-  background: #59310E;
+  background: #59310e;
 }
-.login-links {
-  display: flex;
-  justify-content: center;
-  margin-top: 16px;
-  gap: 12px;
+.login-links-box {
+  margin-top: 12px;
+  text-align: center;
   font-size: 15px;
+  line-height: 1.8;
 }
-.link {
+.login-links-box .link {
   color: #bfa074;
   text-decoration: underline;
-  cursor: pointer;
-  font-weight: 500;
 }
 .divider {
   color: #bfa074;
+  margin: 0 8px;
 }
 </style>

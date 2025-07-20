@@ -10,7 +10,7 @@
         </router-link>
       </div>
       <nav class="nav-tabs">
-        <router-link to="/home" class="nav-tab" active-class="active">首页资讯</router-link>
+        <router-link to="/" class="nav-tab" active-class="active">首页资讯</router-link>
         <router-link to="/schedule" class="nav-tab" active-class="active">所有排期</router-link>
         <router-link to="/theaters" class="nav-tab" active-class="active">剧院列表</router-link>
         <router-link to="/shows" class="nav-tab" active-class="active">演出列表</router-link>
