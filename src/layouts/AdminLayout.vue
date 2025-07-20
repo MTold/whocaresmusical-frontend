@@ -11,5 +11,6 @@
 </template>
 
 <script setup lang="ts">
+
 import AdminSidebar from '@/components/layout/AdminSidebar.vue'
 </script>

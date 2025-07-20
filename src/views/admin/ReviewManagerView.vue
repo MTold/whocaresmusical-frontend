@@ -3,201 +3,354 @@
     <!-- 标题 -->
     <h1 class="page-title">评价管理</h1>
 
-    <!-- Tab 切换：已通过 | 待审核 | 违规信息 -->
-    <div class="tabs-wrapper">
+    <!-- 顶部功能区 -->
+    <div class="control-area">
+      <!-- Tab切换 -->
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-        <el-tab-pane label="已通过"  name="passed" />
-        <el-tab-pane label="待审核"  name="pending" />
+        <el-tab-pane label="已通过" name="passed" />
+        <el-tab-pane label="待审核" name="pending" />
         <el-tab-pane label="违规信息" name="violation" />
       </el-tabs>
+
+      <!-- 关键：占位空白，宽度就是你想留的距离 -->
+    <span class="divider"></span>
+
+
+      <!-- 搜索框 -->
+      <div class="search-wrapper">
+        <el-input
+          v-model="keyword"
+          placeholder="请输入关键字（剧目/内容）"
+          clearable
+          @keyup.enter="handleSearch"
+          @clear="handleSearch"
+        />
+        <el-button type="primary" @click="handleSearch">搜索</el-button>
+      </div>
     </div>
 
-    <!-- 工具栏：关键字 + 筛选按钮 -->
-    <div class="toolbar">
-      <el-input
-        v-model="keyword"
-        placeholder="请输入关键字（剧目 / 内容）"
-        style="width: 240px"
-        @keyup.enter="loadReviews"
-      />
-      <el-button type="primary" @click="loadReviews">搜索</el-button>
+    <!-- 表格区域 -->
+    <div class="table-wrapper">
+      <el-table
+        :data="tableData"
+        stripe
+        style="width: 100%"
+        v-loading="loading"
+        empty-text="暂无数据"
+      >
+        <el-table-column prop="id" label="编号" width="80" align="center" />
+        <el-table-column prop="showName" label="剧目" width="180" show-overflow-tooltip />
+        <el-table-column prop="username" label="用户" width="120" />
+        <el-table-column prop="rating" label="评分" width="100" align="center">
+          <template #default="{ row }">
+            <star-rating
+              :model-value="row.rating"
+              :readonly="true"
+              :star-size="20"
+            />
+          </template>
+        </el-table-column>
+        <el-table-column prop="content" label="评价内容" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="createdAt" label="时间" width="160">
+          <template #default="{ row }">
+            {{ formatDate(row.createdAt) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="220" fixed="right" align="center">
+          <template #default="{ row }">
+            <el-button size="small" @click="openDetail(row)">详情</el-button>
+            <el-button
+              v-if="row.status === 0"
+              size="small"
+              type="success"
+              @click="approve(row.id)"
+            >通过</el-button>
+            <el-button
+              v-if="row.status === 0"
+              size="small"
+              type="danger"
+              @click="reject(row.id)"
+            >拒绝</el-button>
+            <el-button
+              size="small"
+              type="danger"
+              plain
+              @click="handleDelete(row.id)"
+            >删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- 分页 -->
+      <div class="pagination-wrapper">
+        <el-pagination
+          v-model:current-page="currentPage"
+          :page-size="pageSize"
+          :total="total"
+          :page-sizes="[10, 20, 30, 50]"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handlePageChange"
+        />
+      </div>
     </div>
-
-    <!-- 表格 -->
-    <el-table
-      :data="tableData"
-      stripe
-      style="width: 100%; margin-top: 16px"
-    >
-      <el-table-column prop="id"        label="编号" width="80" />
-      <el-table-column prop="showName"  label="剧目" width="180" />
-      <el-table-column prop="username"  label="用户" width="120" />
-      <el-table-column prop="rating"    label="评分" width="80" align="center">
-        <template #default="{ row }">
-          <star-rating :model-value="row.rating" :readonly="true" />
-        </template>
-      </el-table-column>
-      <el-table-column prop="content"   label="评价内容" show-overflow-tooltip />
-      <el-table-column prop="createdAt" label="时间" width="160">
-        <template #default="{ row }">
-          {{ formatDate(row.createdAt) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="200" align="center">
-        <template #default="{ row }">
-          <el-button size="small" @click="openDetail(row)">详情</el-button>
-          <el-button
-            v-if="row.status === 0"
-            size="small"
-            type="success"
-            @click="approve(row.id)"
-          >通过</el-button>
-          <el-button
-            v-if="row.status === 0"
-            size="small"
-            type="danger"
-            @click="violate(row.id)"
-          >违规</el-button>
-          <el-button
-            size="small"
-            type="danger"
-            plain
-            @click="remove(row.id)"
-          >删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <!-- 分页 -->
-    <el-pagination
-      v-model:current-page="currentPage"
-      :page-size="pageSize"
-      :total="total"
-      layout="prev, pager, next"
-      @current-change="loadReviews"
-      style="margin-top: 24px; justify-content: center"
-    />
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+<script>
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getReviewsByPerformance } from '@/api/review' // 复用已有接口
 import StarRating from '@/components/common/StarRating.vue'
+import {
+  getReviewsByPerformance,
+  updateReviewStatus,
+  deleteReview
+} from '@/api/review'  // 确保路径正确
 
-type TabName = 'passed' | 'pending' | 'violation'
-interface ReviewItem {
-  id: number
-  showName: string
-  username: string
-  rating: number
-  content: string
-  createdAt: string
-  status: 0 | 1 | 2
-}
+export default {
+  components: {
+    StarRating
+  },
+  // 或使用 Composition API：
+  setup() {
+    // 状态管理
+    const activeTab = ref('pending') // 'passed'|'pending'|'violation'
+    const keyword = ref('')
+    const currentPage = ref(1)
+    const pageSize = ref(10)
+    const total = ref(0)
+    const loading = ref(false)
+    const tableData = ref([])
+    const statusMap = {
+      0: '待审核',
+      1: '已通过',
+      2: '违规'
+    }
 
-const activeTab = ref<TabName>('passed')
-const keyword   = ref('')
-const currentPage = ref(1)
-const pageSize    = ref(10)
-const total       = ref(0)
-const tableData   = ref<ReviewItem[]>([])
-
-const handleTabChange = () => {
-  currentPage.value = 1
-  loadReviews()
-}
-
-/* 把 Tab 转成后端需要的 status 数字 */
-const tab2Status = (tab: TabName): 0 | 1 | 2 => {
-  switch (tab) {
-    case 'passed':    return 1
-    case 'pending':   return 0
-    case 'violation': return 2
-    default:          return 1
-  }
-}
-
-/* 加载列表 */
-const loadReviews = async () => {
+    // 数据获取
+    const fetchData = async () => {
+  loading.value = true
   try {
-
     const res = await getReviewsByPerformance(
-    0,           // 剧目 ID
-    currentPage.value - 1,
-    pageSize.value,
-    keyword.value
-  )
-    tableData.value = res.content || []
-    total.value     = res.totalElements || 0
-  } catch (e) {
-    ElMessage.error('加载失败')
+      0, // 明确传递数字 0 而不是对象
+      currentPage.value - 1,
+      pageSize.value,
+      keyword.value,
+      activeTab.value === 'passed' ? 1 :
+      activeTab.value === 'violation' ? 2 : 0
+    )
+
+    tableData.value = res.content.map(item => ({
+      id: item.id,
+      showName: item.performanceName,
+      username: item.username,
+      rating: item.rating,
+      content: item.content,
+      createdAt: item.createdAt,
+      status: item.status || 0
+    }))
+    total.value = res.totalElements
+  } catch (error) {
+    ElMessage.error('数据加载失败')
+    console.error('API 请求错误:', error)
+  } finally {
+    loading.value = false
   }
 }
 
-/* 审核 / 违规 / 删除 */
-const approve = async (id: number) => {
-  await updateStatus(id, 1, '已通过')
-}
-const violate = async (id: number) => {
-  await updateStatus(id, 2, '已标记违规')
-}
-const remove = async (id: number) => {
-  try {
-    await ElMessageBox.confirm('确认删除该评价？', '提示', { type: 'warning' })
-    // 调用后台 deleteReview(id)
-    ElMessage.success('删除成功')
-    loadReviews()
-  } catch {}
-}
+    // Tab状态转换
+    const getStatusByTab = (tab) => {
+      const map = {
+        'passed': 1,
+        'pending': 0,
+        'violation': 2
+      }
+      return map[tab] || 0
+    }
 
-const updateStatus = async (id: number, status: 0 | 1 | 2, msg: string) => {
-  // 后台接口示例： await updateReviewStatus(id, status)
-  ElMessage.success(msg)
-  loadReviews()
+    // 事件处理
+    const handleTabChange = () => {
+      currentPage.value = 1
+      fetchData()
+    }
+
+    const handleSearch = () => {
+      currentPage.value = 1
+      fetchData()
+    }
+
+    const handleSizeChange = (size) => {
+      pageSize.value = size
+      fetchData()
+    }
+
+    const handlePageChange = (page) => {
+      currentPage.value = page
+      fetchData()
+    }
+
+    // 操作处理
+    const approve = async (id) => {
+      try {
+        await updateReviewStatus(id, 1)
+        ElMessage.success('审核通过')
+        fetchData()
+      } catch (error) {
+        ElMessage.error('操作失败')
+      }
+    }
+
+    const reject = async (id) => {
+      try {
+        await updateReviewStatus(id, 2)
+        ElMessage.success('已标记为违规')
+        fetchData()
+      } catch (error) {
+        ElMessage.error('操作失败')
+      }
+    }
+
+    const handleDelete = async (id) => {
+      try {
+        await ElMessageBox.confirm('确定删除该评价吗？', '警告', {
+          type: 'warning',
+          confirmButtonText: '确定',
+          cancelButtonText: '取消'
+        })
+        await deleteReview(id)
+        ElMessage.success('删除成功')
+        fetchData()
+      } catch (error) {
+        // 用户取消操作
+      }
+    }
+
+    const openDetail = (row) => {
+      // 实现详情查看逻辑
+      console.log('查看评价详情:', row)
+    }
+
+    // 辅助函数
+    const formatDate = (dateStr) => {
+      return new Date(dateStr).toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }
+
+    // 生命周期
+    onMounted(() => {
+      fetchData()
+    })
+
+    return {
+      activeTab,
+      keyword,
+      currentPage,
+      pageSize,
+      total,
+      loading,
+      tableData,
+      statusMap,
+      handleTabChange,
+      handleSearch,
+      handleSizeChange,
+      handlePageChange,
+      approve,
+      reject,
+      handleDelete,
+      openDetail,
+      formatDate
+    }
+  }
 }
-
-const openDetail = (row: ReviewItem) => {
-  // 弹出详情抽屉或页面跳转
-  console.log(row)
-}
-
-const formatDate = (d: string) =>
-  new Date(d).toLocaleString('zh-CN', { dateStyle: 'short', timeStyle: 'short' })
-
-onMounted(loadReviews)
 </script>
 
 <style scoped>
+/* ===== 整体容器 ===== */
+.review-manager {
+  padding: 20px;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  /* 关键：给顶部导航栏留空，按实际情况调整 */
+  margin-top: 80px;        /* 如果导航 60px，可改成 70 / 80 */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ===== 标题 ===== */
 .page-title {
   font-size: 32px;
   font-weight: bold;
-  margin-bottom: 24px;
   color: #59310e;
+  text-align: center;
+  margin: 0;
   position: absolute;   /* 或 fixed，视需求而定 */
-  top: 10px;
+  top: 15px;
   left: 22%;
   transform: translateX(-50%);
 }
 
-.toolbar {
+/* ===== 顶部功能区 ===== */
+.control-area {
   display: flex;
-  gap: 12px;
-  margin-bottom: 8px;
+  justify-content: space-between;
+  align-items: left;
+  margin-bottom: 0;   /* gap 已统一留空隙 */
   position: absolute;   /* 或 fixed，视需求而定 */
-  top: 100px;
-  right: 25%;
+  top: 10%;
+  left: 40%;
   transform: translateX(-50%);
 }
-.tabs-wrapper {
+/* 占位空白，宽度随意调 */
+.divider {
+  width: 60px;   /* 这就是“违规信息”与搜索栏的距离 */
+  flex-shrink: 0; /* 防止被压缩 */
+}
+
+.search-wrapper {
   display: flex;
-  justify-content: center;
-  margin: 0 auto 24px;
-  max-width: 600px;
+  align-items: center;
+  gap: 10px;
+}
+.search-wrapper .el-input {
+  width: 300px;
+}
+
+/* ===== 表格 & 分页 ===== */
+.table-wrapper {
+  margin-top: 0;
   position: absolute;   /* 或 fixed，视需求而定 */
-  top: 100px;
-  left: 25%;
+  top: 20%;
+  left: 53%;
   transform: translateX(-50%);
+}
+.table-wrapper .el-table {
+  margin-bottom: 20px;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ===== 响应式：窄屏时纵向排列 ===== */
+@media (max-width: 768px) {
+  .control-area {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .search-wrapper {
+    width: 100%;
+    margin-top: 10px;
+  }
+  .search-wrapper .el-input {
+    width: 100%;
+  }
 }
 </style>
