@@ -3,14 +3,10 @@
 
 <template>
   <div class="page-container">
-    <el-container style="height: 100vh;">
-
-      <el-main>
-        <router-view /> <!-- 只需要这个，路由由 main.ts 挂载 -->
-      </el-main>
-    </el-container>
+    <router-view />
   </div>
 </template>
+
 
 <style scoped>
 .page-container {

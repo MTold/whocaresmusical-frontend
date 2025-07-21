@@ -97,6 +97,7 @@ const routes = [
         name: 'DashboardView',
         component: () => import('@/views/admin/DashboardView.vue'),
       },
+
       {
         path: 'users',
         name: 'UserManager',

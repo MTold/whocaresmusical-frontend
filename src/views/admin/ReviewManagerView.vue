@@ -12,9 +12,8 @@
         <el-tab-pane label="违规信息" name="violation" />
       </el-tabs>
 
-      <!-- 关键：占位空白，宽度就是你想留的距离 -->
-    <span class="divider"></span>
-
+      <!-- 占位空白，宽度就是你想留的距离 -->
+      <span class="divider"></span>
 
       <!-- 搜索框 -->
       <div class="search-wrapper">
@@ -104,14 +103,14 @@ import StarRating from '@/components/common/StarRating.vue'
 import {
   getReviewsByPerformance,
   updateReviewStatus,
-  deleteReview
+  deleteReview,
+  createReview
 } from '@/api/review'  // 确保路径正确
 
 export default {
   components: {
     StarRating
   },
-  // 或使用 Composition API：
   setup() {
     // 状态管理
     const activeTab = ref('pending') // 'passed'|'pending'|'violation'
@@ -121,6 +120,10 @@ export default {
     const total = ref(0)
     const loading = ref(false)
     const tableData = ref([])
+    const newReview = ref({
+      performanceId: '',
+      content: '',
+      rating: 0})
     const statusMap = {
       0: '待审核',
       1: '已通过',
@@ -129,34 +132,45 @@ export default {
 
     // 数据获取
     const fetchData = async () => {
-  loading.value = true
-  try {
-    const res = await getReviewsByPerformance(
-      0, // 明确传递数字 0 而不是对象
-      currentPage.value - 1,
-      pageSize.value,
-      keyword.value,
-      activeTab.value === 'passed' ? 1 :
-      activeTab.value === 'violation' ? 2 : 0
-    )
+      loading.value = true
+      try {
+        const res = await getReviewsByPerformance(
+          0, // 明确传递数字 0 而不是对象
+          currentPage.value - 1,
+          pageSize.value,
+          keyword.value,
+          activeTab.value === 'passed' ? 1 :
+          activeTab.value === 'violation' ? 2 : 0
+        )
 
-    tableData.value = res.content.map(item => ({
-      id: item.id,
-      showName: item.performanceName,
-      username: item.username,
-      rating: item.rating,
-      content: item.content,
-      createdAt: item.createdAt,
-      status: item.status || 0
-    }))
-    total.value = res.totalElements
-  } catch (error) {
-    ElMessage.error('数据加载失败')
-    console.error('API 请求错误:', error)
-  } finally {
-    loading.value = false
-  }
-}
+        tableData.value = res.content.map(item => ({
+          id: item.id,
+          showName: item.performanceName,
+          username: item.username,
+          rating: item.rating,
+          content: item.content,
+          createdAt: item.createdAt,
+          status: item.status || 0
+        }))
+        total.value = res.totalElements
+      } catch (error) {
+        ElMessage.error('数据加载失败')
+        console.error('API 请求错误:', error)
+      } finally {
+        loading.value = false
+      }
+    }
+
+    // 创建评价
+    const createReview = async () => {
+      try {
+        await createReview(newReview.value)
+        ElMessage.success('评价创建成功')
+        fetchData()
+      } catch (error) {
+        ElMessage.error('创建失败')
+      }
+    }
 
     // Tab状态转换
     const getStatusByTab = (tab) => {
@@ -254,6 +268,7 @@ export default {
       total,
       loading,
       tableData,
+      newReview,
       statusMap,
       handleTabChange,
       handleSearch,
@@ -263,7 +278,8 @@ export default {
       reject,
       handleDelete,
       openDetail,
-      formatDate
+      formatDate,
+      createReview
     }
   }
 }
@@ -276,8 +292,7 @@ export default {
   background: #fff;
   border-radius: 4px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  /* 关键：给顶部导航栏留空，按实际情况调整 */
-  margin-top: 80px;        /* 如果导航 60px，可改成 70 / 80 */
+  margin-top: 80px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -290,7 +305,7 @@ export default {
   color: #59310e;
   text-align: center;
   margin: 0;
-  position: absolute;   /* 或 fixed，视需求而定 */
+  position: absolute;
   top: 15px;
   left: 22%;
   transform: translateX(-50%);
@@ -300,17 +315,18 @@ export default {
 .control-area {
   display: flex;
   justify-content: space-between;
-  align-items: left;
-  margin-bottom: 0;   /* gap 已统一留空隙 */
-  position: absolute;   /* 或 fixed，视需求而定 */
+  align-items: center;
+  margin-bottom: 0;
+  position: absolute;
   top: 10%;
   left: 40%;
   transform: translateX(-50%);
 }
+
 /* 占位空白，宽度随意调 */
 .divider {
-  width: 60px;   /* 这就是“违规信息”与搜索栏的距离 */
-  flex-shrink: 0; /* 防止被压缩 */
+  width: 60px;
+  flex-shrink: 0;
 }
 
 .search-wrapper {
@@ -325,7 +341,7 @@ export default {
 /* ===== 表格 & 分页 ===== */
 .table-wrapper {
   margin-top: 0;
-  position: absolute;   /* 或 fixed，视需求而定 */
+  position: absolute;
   top: 20%;
   left: 53%;
   transform: translateX(-50%);
@@ -352,5 +368,47 @@ export default {
   .search-wrapper .el-input {
     width: 100%;
   }
+}
+
+/* ===== 颜色调整 ===== */
+.el-tabs__item {
+  color: #bfa074; /* 标签颜色 */
+}
+.el-tabs__item.is-active {
+  color: #a0522d; /* 激活标签颜色 */
+}
+.el-input__inner {
+  border-color: #bfa074; /* 输入框边框颜色 */
+}
+.el-input__inner:focus {
+  border-color: #a0522d; /* 输入框聚焦边框颜色 */
+}
+.el-button {
+  color: #ffffff; /* 按钮文字颜色 */
+  background-color: #e6c9b0; /* 按钮背景颜色 */
+  border-color: #a0522d; /* 按钮边框颜色 */
+}
+.el-button.is-active,
+.el-button:active {
+  background-color: #a0522d; /* 按钮激活背景颜色 */
+  border-color: #7a3a1d; /* 按钮激活边框颜色 */
+}
+.el-button--primary {
+  background-color: #a0522d; /* 主要按钮背景颜色 */
+  border-color: #7a3a1d; /* 主要按钮边框颜色 */
+}
+.el-button--primary.is-active,
+.el-button--primary:active {
+  background-color: #7a3a1d; /* 主要按钮激活背景颜色 */
+  border-color: #59310e; /* 主要按钮激活边框颜色 */
+}
+.el-button--danger {
+  background-color: #e74c3c; /* 危险按钮背景颜色 */
+  border-color: #c0392b; /* 危险按钮边框颜色 */
+}
+.el-button--danger.is-active,
+.el-button--danger:active {
+  background-color: #c0392b; /* 危险按钮激活背景颜色 */
+  border-color: #a93226; /* 危险按钮激活边框颜色 */
 }
 </style>
