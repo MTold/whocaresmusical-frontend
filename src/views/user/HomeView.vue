@@ -2,8 +2,13 @@
   <div class="home-view">
     <div class="carousel-banner">
       <el-carousel height="240px" indicator-position="outside" arrow="always">
-        <el-carousel-item v-for="(img, idx) in carouselImages" :key="idx">
-          <img :src="img" class="carousel-img" />
+        <el-carousel-item v-for="theater in theaters" :key="theater.id">
+          <div style="cursor:pointer;position:relative;width:100%;height:100%;" @click="goToTheater(theater.id)">
+            <img :src="theater.image" class="carousel-img" />
+            <div style="position:absolute;left:30px;bottom:30px;color:#fff;text-shadow:0 2px 8px #000;font-size:22px;font-weight:bold;background:rgba(0,0,0,0.25);padding:6px 18px;border-radius:8px;">
+              {{ theater.name }}
+            </div>
+          </div>
         </el-carousel-item>
       </el-carousel>
       <div class="banner-text">
@@ -24,7 +29,7 @@
     <div class="section recommend-section">
       <h2>为你推荐</h2>
       <div class="recommend-list">
-        <div v-for="item in recommendList" :key="item.id" class="recommend-item">
+        <div v-for="item in recommendList" :key="item.id" class="recommend-item" @click="goToShow(item.id)" style="cursor:pointer;">
           <img :src="item.image" :alt="item.name" class="recommend-img" />
           <div class="recommend-name">{{ item.name }}</div>
         </div>
@@ -34,24 +39,72 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { getNewsList } from '@/api'
 import 'element-plus/es/components/carousel/style/css'
 import 'element-plus/es/components/carousel-item/style/css'
-const carouselImages = [
-  '/src/assets/login_bg.png',
-  '/src/assets/color.png',
-  '/src/assets/logo_slogan.png'
+
+// 剧院数据（与 TheaterListView.vue 保持一致）
+const theaters = [
+  {
+    id: 1,
+    name: '国家大剧院',
+    image: 'https://img1.doubanio.com/pview/drama_subject_poster/m/public/c18ea468e1fbf29.jpg',
+  },
+  {
+    id: 2,
+    name: '上海大剧院',
+    image: 'https://img1.doubanio.com/pview/drama_subject_poster/m/public/c18ea468e1fbf29.jpg',
+  },
+  {
+    id: 3,
+    name: '广州大剧院',
+    image: 'https://img1.doubanio.com/view/photo/l/public/p2575466399.webp',
+  },
+  {
+    id: 4,
+    name: '深圳保利剧院',
+    image: 'https://img1.doubanio.com/view/photo/l/public/p2575466400.webp',
+  },
+  {
+    id: 5,
+    name: '杭州大剧院',
+    image: 'https://img1.doubanio.com/view/photo/l/public/p2575466401.webp',
+  },
+  {
+    id: 6,
+    name: '天津大剧院',
+    image: 'https://img1.doubanio.com/view/photo/l/public/p2575466402.webp',
+  },
 ]
-const newsList = ref([
-  { id: 1, title: '2024上海国际音乐剧节开幕', date: '2024-06-01', summary: '本届音乐剧节将有20余部剧目轮番上演，国际团队齐聚申城。' },
-  { id: 2, title: '热门剧目《剧院魅影》再度来沪', date: '2024-05-28', summary: '经典音乐剧《剧院魅影》将于7月在上海大剧院连演10场。' },
-  { id: 3, title: '沪上剧院暑期亲子专场开启', date: '2024-05-20', summary: '多家剧院推出亲子专场，丰富孩子暑期文化生活。' },
-])
+const router = useRouter()
+const goToTheater = (id: number) => {
+  router.push({ name: 'TheaterDetail', params: { id } })
+}
+interface NewsItem {
+  id: number;
+  title: string;
+  date: string;
+  summary: string;
+}
+const newsList = ref<NewsItem[]>([])
+onMounted(async () => {
+  try {
+    const data = await getNewsList()
+    newsList.value = Array.isArray(data) ? data : []
+  } catch {
+    newsList.value = []
+  }
+})
 const recommendList = ref([
   { id: 1, name: '哈姆雷特', image: 'https://img1.doubanio.com/pview/drama_subject_poster/m/public/c18ea468e1fbf29.jpg' },
   { id: 2, name: '剧院魅影', image: 'https://img1.doubanio.com/pview/drama_subject_poster/m/public/65f4e84e65cfdf0.jpg' },
   { id: 3, name: 'Show 3', image: 'show3.jpg' },
 ])
+const goToShow = (id: number) => {
+  router.push(`/shows/${id}`)
+}
 </script>
 
 <style scoped>

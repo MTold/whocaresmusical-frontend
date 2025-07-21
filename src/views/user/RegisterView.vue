@@ -9,12 +9,6 @@
         <el-form-item label="邮箱" prop="email">
           <el-input v-model="registerForm.email" placeholder="请输入邮箱" />
         </el-form-item>
-        <el-form-item label="验证码" prop="code">
-          <el-input v-model="registerForm.code" placeholder="请输入验证码" style="width: 180px; margin-right: 10px;" />
-          <el-button type="primary" @click="onSendCode" :disabled="codeSending || codeCountdown > 0">
-            {{ codeCountdown > 0 ? `${codeCountdown}s后重试` : '获取验证码' }}
-          </el-button>
-        </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input v-model="registerForm.password" type="password" placeholder="请输入密码" />
         </el-form-item>
@@ -42,54 +36,14 @@ const router = useRouter();
 const registerForm = ref({
   phone: '',
   email: '',
-  code: '',
   password: '',
   confirmPassword: ''
 });
 const registerFormRef = ref();
 
-const codeSending = ref(false);
-const codeCountdown = ref(0);
-let codeTimer: ReturnType<typeof setInterval> | null = null;
-
-const onSendCode = () => {
-  if (!registerForm.value.phone && !registerForm.value.email) {
-    ElMessage.warning('请填写手机号或邮箱后再获取验证码');
-    return;
-  }
-  codeSending.value = true;
-  // 模拟验证码发送
-  setTimeout(() => {
-    ElMessage.success('验证码已发送');
-    codeSending.value = false;
-    codeCountdown.value = 60;
-    codeTimer = setInterval(() => {
-      codeCountdown.value--;
-      if (codeCountdown.value <= 0) {
-        if (codeTimer !== null) {
-          clearInterval(codeTimer);
-          codeTimer = null;
-        }
-      }
-    }, 1000);
-  }, 1000);
-};
-
-onMounted(() => {
-  const role = localStorage.getItem('loginRole');
-  if (role === 'admin') {
-    ElMessage.warning('仅用户可注册');
-    router.replace('/login');
-  }
-});
-
 const onRegister = () => {
   if (!registerForm.value.phone && !registerForm.value.email) {
     ElMessage.warning('请填写手机号或邮箱');
-    return;
-  }
-  if (!registerForm.value.code) {
-    ElMessage.warning('请输入验证码');
     return;
   }
   if (!registerForm.value.password) {
@@ -102,6 +56,14 @@ const onRegister = () => {
   }
   ElMessage.info('注册功能待实现');
 };
+
+onMounted(() => {
+  const role = localStorage.getItem('loginRole');
+  if (role === 'admin') {
+    ElMessage.warning('仅用户可注册');
+    router.replace('/login');
+  }
+});
 </script>
 
 <style scoped>

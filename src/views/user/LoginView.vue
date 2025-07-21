@@ -32,11 +32,8 @@
           <!-- 第一行：注册账号 | 忘记密码？ -->
           <div v-if="role === 'user'" class="line1">
             <router-link to="/user-register" class="link">注册账号</router-link>
-            <span class="divider">|</span>
-            <router-link to="/forgot-password" class="link">忘记密码？</router-link>
           </div>
           <div v-else class="line1">
-            <router-link to="/forgot-password" class="link">忘记密码？</router-link>
           </div>
 
           <!-- 第二行：放弃登录，返回首页 -->
