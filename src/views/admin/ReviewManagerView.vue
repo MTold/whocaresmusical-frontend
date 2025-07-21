@@ -286,17 +286,18 @@ export default {
 </script>
 
 <style scoped>
-/* ===== 整体容器 ===== */
+/* ===== 整体容器
 .review-manager {
   padding: 20px;
-  background: #fff;
+  background: #ffffff;
   border-radius: 4px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   margin-top: 80px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-}
+
+} ===== */
 
 /* ===== 标题 ===== */
 .page-title {

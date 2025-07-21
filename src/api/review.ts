@@ -5,6 +5,7 @@ const reviewApi = axios.create({
   baseURL: API_BASE_URL,
   // 建议添加超时设置
   timeout: 10000,
+  withCredentials: true
 });
 
 // 获取评价列表（管理后台专用）
@@ -24,8 +25,8 @@ export const getReviewsByPerformance = async (
 
   // 确保 performanceId 是数字
   const validId = Number(performanceId) || 0
-
-  const response = await reviewApi.get(`/reviews/performance/${validId}?${params}`)
+  const response = await reviewApi.get(`/reviews/by-status?status=${status}&${params}`)
+  //const response = await reviewApi.get(`/reviews/performance/${validId}?${params}`)
   return {
     content: response.data.content || [],
     totalElements: response.data.totalElements || 0
