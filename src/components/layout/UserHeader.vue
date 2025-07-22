@@ -15,7 +15,7 @@
         <router-link to="/theaters" class="nav-tab" active-class="active">剧院列表</router-link>
         <router-link to="/shows" class="nav-tab" active-class="active">演出列表</router-link>
         <router-link to="/profile" class="nav-tab" active-class="active">个人中心</router-link>
-        <el-button class="user-icon-btn" type="text" @click="$router.push('/login')">
+        <el-button class="user-icon-btn" type="text" @click="handleUserIconClick">
           <svg class="user-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="8" r="4" stroke="#59310E" stroke-width="2"/>
             <path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="#59310E" stroke-width="2" stroke-linecap="round"/>
@@ -27,6 +27,20 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
+import { authApi } from '@/api/auth'
+
+const router = useRouter()
+
+const handleUserIconClick = () => {
+  if (authApi.isLoggedIn()) {
+    // 已登录，跳转到个人中心
+    router.push('/profile')
+  } else {
+    // 未登录，跳转到登录页面
+    router.push('/login')
+  }
+}
 </script>
 
 <style scoped>
