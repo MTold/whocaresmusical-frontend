@@ -8,7 +8,25 @@ const reviewApi = axios.create({
   withCredentials: true
 });
 
-// 获取评价列表（管理后台专用）
+// 按状态获取评价列表
+export const getReviewsByStatus = async (
+  status: number,
+  page: number = 0,
+  size: number = 10
+) => {
+  const params = new URLSearchParams();
+  params.append('page', page.toString());
+  params.append('size', size.toString());
+
+  const response = await reviewApi.get(`/reviews/by-status`, { params: params, paramsSerializer: params => params.toString() });
+  return {
+    content: response.data.content || [],
+    totalElements: response.data.totalElements || 0
+  };
+};
+
+
+// 按剧目获取评价列表（管理后台专用）
 export const getReviewsByPerformance = async (
   performanceId: number,
   page: number = 0,
@@ -90,6 +108,7 @@ export const getMyReviews = async (page: number = 0, size: number = 10) => {
 
 export default {
   getReviewsByPerformance,
+  getReviewsByStatus,
   updateReviewStatus,
   deleteReview,
   getReviewStatistics,

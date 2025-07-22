@@ -13,13 +13,13 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 评分分布图 -->
     <div class="rating-distribution" v-if="reviewStatistics.totalCount > 0">
       <div class="rating-bar" v-for="rating in 5" :key="rating">
         <span class="rating-label">{{ rating }}星</span>
         <div class="bar-container">
-          <div class="bar" 
+          <div class="bar"
                :style="{ width: getRatingPercentage(rating) + '%' }"
                :class="{ 'active': selectedRating === rating }">
           </div>
@@ -27,22 +27,22 @@
         <span class="rating-count">{{ reviewStatistics[`rating${rating}Count`] || 0 }}</span>
       </div>
     </div>
-    
+
     <div class="divider"></div>
-    
+
     <!-- 筛选器 -->
     <div class="filter-section">
-      <button 
-        v-for="rating in [null, 1, 2, 3, 4, 5]" 
+      <button
+        v-for="rating in [null, 1, 2, 3, 4, 5]"
         :key="rating"
         :class="['filter-btn', { active: selectedRating === rating }]"
         @click="filterByRating(rating)">
         {{ rating ? `${rating}星` : '全部' }}
       </button>
     </div>
-    
+
     <div class="divider"></div>
-    
+
     <!-- 评价列表 -->
     <div class="reviews-scroll">
       <div
@@ -50,10 +50,10 @@
         :key="review.id"
         class="review-item"
       >
-        <img 
-          :src="review.userImage || '/avatar-placeholder.png'" 
-          alt="用户头像" 
-          class="user-image" 
+        <img
+          :src="review.userImage || '/avatar-placeholder.png'"
+          alt="用户头像"
+          class="user-image"
         />
         <div class="review-info">
           <div class="review-header">
@@ -65,7 +65,7 @@
             <span class="rating-num">{{ review.rating }}.0</span>
           </div>
           <div class="review-content">{{ review.content }}</div>
-          
+
           <!-- 评价操作（暂时显示给所有人，因为没有登录） -->
           <div class="review-actions">
             <button @click="editReview(review)" class="action-btn edit">编辑</button>
@@ -74,57 +74,57 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 分页 -->
     <div class="pagination" v-if="totalPages > 1">
-      <button 
-        @click="changePage(currentPage - 1)" 
+      <button
+        @click="changePage(currentPage - 1)"
         :disabled="currentPage === 0"
         class="page-btn">上一页
       </button>
-      
+
       <span v-for="page in visiblePages" :key="page">
-        <button 
-          @click="changePage(page - 1)" 
+        <button
+          @click="changePage(page - 1)"
           :class="['page-btn', { active: page - 1 === currentPage }]"
           v-if="page !== -1"
         >{{ page }}
         </button>
         <span v-else class="ellipsis">...</span>
       </span>
-      
-      <button 
-        @click="changePage(currentPage + 1)" 
+
+      <button
+        @click="changePage(currentPage + 1)"
         :disabled="currentPage === totalPages - 1"
         class="page-btn">下一页
       </button>
     </div>
-    
+
     <div class="divider"></div>
-    
+
     <!-- 新增评价表单（始终显示，因为没有登录） -->
     <div class="new-review-section">
       <div class="new-title">我来写评价</div>
-      
+
       <div class="form-item">
         <label>评分</label>
         <star-rating v-model="newReview.rating"></star-rating>
         <span class="rating-display">{{ newReview.rating }}</span>
       </div>
-      
+
       <div class="form-item">
         <label>评价内容</label>
-        <textarea 
-          v-model="newReview.content" 
+        <textarea
+          v-model="newReview.content"
           placeholder="分享您的观剧体验..."
           :maxlength="1000"
         ></textarea>
         <span class="char-count">{{ newReview.content.length }}/1000</span>
       </div>
-      
+
       <div class="action-btns">
-        <button 
-          @click="submitReview" 
+        <button
+          @click="submitReview"
           :disabled="!isValidReview"
           class="submit-btn"
         >发布评价
@@ -139,13 +139,13 @@
 import { ref, reactive, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import StarRating from '@/components/common/StarRating.vue';
-import { 
-  getReviewsByPerformance, 
-  getReviewStatistics, 
-  createReview, 
+import {
+  getReviewsByPerformance,
+  getReviewStatistics,
+  createReview,
   checkUserReviewed,
   deleteReview,
-  updateReview 
+  updateReview
 } from '@/api/review';
 
 const route = useRoute();
@@ -199,21 +199,21 @@ const visiblePages = computed(() => {
   const maxPages = 5;
   let start = Math.max(1, currentPage.value - Math.floor(maxPages / 2));
   const end = Math.min(totalPages.value, start + maxPages - 1);
-  
+
   if (end - start < maxPages - 1) {
     start = Math.max(1, end - maxPages + 1);
   }
-  
+
   if (start > 1) pages.push(1);
   if (start > 2) pages.push(-1); // 省略号
-  
+
   for (let i = start; i <= end; i++) {
     pages.push(i);
   }
-  
+
   if (end < totalPages.value - 1) pages.push(-1); // 省略号
   if (end < totalPages.value) pages.push(totalPages.value);
-  
+
   return pages;
 });
 
@@ -247,11 +247,11 @@ const loadReviews = async () => {
       getReviewsByPerformance(performanceId, currentPage.value, pageSize.value, selectedRating.value),
       getReviewStatistics(performanceId)
     ]);
-    
+
     reviews.value = reviewsData.content || [];
     totalPages.value = reviewsData.totalPages || 0;
     totalCount.value = reviewsData.totalElements || 0;
-    
+
     reviewStatistics.value = {
       totalCount: statsData.totalCount || 0,
       averageRating: parseFloat((statsData.averageRating || 0).toFixed(1)),
@@ -308,23 +308,23 @@ const submitReview = async () => {
     console.log('验证不通过，评分:', newReview.rating, '内容:', newReview.content);
     return;
   }
-  
+
   try {
     console.log('开始提交评价:', {
       performanceId: performanceId,
       content: newReview.content,
       rating: newReview.rating
     });
-    
+
     const response = await createReview({
       performanceId,
       content: newReview.content,
       rating: newReview.rating
     });
-    
+
     console.log('评价提交成功:', response);
     clearReview();
-    
+
     // 立即添加到当前列表，避免等待重新加载
     const newReviewItem = {
       id: response.id,
@@ -335,15 +335,15 @@ const submitReview = async () => {
       username: response.username || '匿名用户',
       userImage: response.userImage || null
     };
-    
+
     reviews.value.unshift(newReviewItem);
-    
+
     // 更新统计数据
     await loadReviewStats();
-    
+
     // 可选：刷新全部列表（但主要使用上方手动添加）
     // await loadReviews();
-    
+
   } catch (error) {
     console.error('提交评价失败:', error);
     alert('评价提交失败: ' + (error.response?.data?.message || error.message || '未知错误'));
