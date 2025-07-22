@@ -12,22 +12,39 @@ const reviewApi = axios.create({
 export const getReviewsByStatus = async (
   status: number,
   page: number = 0,
-  size: number = 10
+  size: number = 10,
+  keyword?: string
 ) => {
-  const params = new URLSearchParams();
-  params.append('page', page.toString());
-  params.append('size', size.toString());
-
-  const response = await reviewApi.get(`/reviews/by-status`, { params: params, paramsSerializer: params => params.toString() });
-  return {
-    content: response.data.content || [],
-    totalElements: response.data.totalElements || 0
+  const params = {
+    status,
+    page,
+    size,
+    ...(keyword && { keyword })
   };
+
+  const response = await reviewApi.get(`/reviews/by-status`, { params });
+  return response.data; // 确保返回的是数组
+
+
+/*return {
+    content: response.data.content.map((item: any) => ({
+      id: item.id,                      // 编号
+      content: item.content,            // 评价内容
+      rating: item.rating,              // 评分
+      performanceName: item.performanceName || '未知剧目', // 剧目名称
+      username: item.username || '匿名用户', // 用户
+      createdAt: item.createdAt,        // 提交时间
+      reviewStatus: item.reviewStatus   // 状态
+    })) || [],
+    totalElements: response.data.totalElements || 0,
+    totalPages: response.data.totalPages || 0,
+    pageNumber: response.data.pageNumber || page
+  };*/
+
 };
 
 
-// 按剧目获取评价列表（管理后台专用）
-=======
+
 // 添加请求拦截器来自动添加token
 reviewApi.interceptors.request.use(
   (config) => {
@@ -40,8 +57,7 @@ reviewApi.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 获取评价列表（管理后台专用）
->>>>>>> 7c2634ec6e0c903e6edeec9f78a3205ced7f98c0
+// 按剧目获取评价列表（管理后台专用）
 export const getReviewsByPerformance = async (
   performanceId: number,
   page: number = 0,
@@ -57,7 +73,7 @@ export const getReviewsByPerformance = async (
   // 确保 performanceId 是数字
   const validId = Number(performanceId) || 1
   const response = await reviewApi.get(`/reviews/performance/${validId}?${params}`)
-  
+
   return {
     content: response.data.content || [],
     totalElements: response.data.totalElements || 0,

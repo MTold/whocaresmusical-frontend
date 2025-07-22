@@ -77,33 +77,28 @@
           </template>
         </el-table-column>
         <el-table-column
+          v-if="activeTab === 'pending'"
           fixed="right"
           label="操作"
           width="220"
           align="center"
+
         >
           <template #default="{ row }">
-            <el-button size="small" @click="openDetail(row)" link>详情</el-button>
-            <el-button
-              size="small"
-              type="success"
-              @click="approve(row.id)"
-              link
-            >通过</el-button>
-            <el-button
-              size="small"
-              type="danger"
-              @click="reject(row.id)"
-              link
-            >拒绝</el-button>
-            <el-button
-              size="small"
-              type="danger"
-              plain
-              @click="handleDelete(row.id)"
-              link
-            >删除</el-button>
-          </template>
+  <el-button
+    size="small"
+    type="success"
+    link
+    @click="approve(row.id)"
+    v-if="row.reviewStatus === 0">通过</el-button>
+
+  <el-button
+    size="small"
+    type="danger"
+    link
+    @click="reject(row.id)"
+    v-if="row.reviewStatus === 0" >拒绝</el-button>
+</template>
         </el-table-column>
       </el-table>
 
@@ -139,29 +134,188 @@ export default {
   },
   setup() {
     // 状态管理
-    const activeTab = ref('pending')// 'passed'|'pending'|'violation'
+    const activeTab = ref('')// 'passed'|'pending'|'violation'
     const keyword = ref('')
     const currentPage = ref(1)
     const pageSize = ref(10)
     const total = ref(0)
     const loading = ref(false)
-    const tableData = ref([])
-    const statusMap = {
-      0: '待审核',
-      1: '已通过',
-      2: '违规'
-    }
+    const tableData = ref([{"content":[{"id":19,"content":"test","rating":4,"userId":11,"performanceId":2,"createdAt":"2025-07-22T13:42:30.30847","updatedAt":"2025-07-22T13:42:30.308502","reviewStatus":1},{"id":18,"content":"test","rating":5,"userId":null,"performanceId":2,"createdAt":"2025-07-22T13:41:00.116832","updatedAt":"2025-07-22T13:41:00.116928","reviewStatus":1},{"id":17,"content":"5","rating":4,"userId":null,"performanceId":1,"createdAt":"2025-07-22T13:37:16.847169","updatedAt":"2025-07-22T13:37:16.847211","reviewStatus":1},{"id":16,"content":"5","rating":5,"userId":11,"performanceId":1,"createdAt":"2025-07-22T13:30:15.557556","updatedAt":"2025-07-22T13:30:15.557605","reviewStatus":1},{"id":10,"content":"excellent","rating":5,"userId":null,"performanceId":1,"createdAt":"2025-07-19T16:24:26.572034","updatedAt":"2025-07-19T16:24:26.572034","reviewStatus":1},{"id":9,"content":"great","rating":5,"userId":null,"performanceId":2,"createdAt":"2025-07-19T16:15:59.956511","updatedAt":"2025-07-19T16:15:59.956511","reviewStatus":1},{"id":4,"content":"1","rating":4,"userId":null,"performanceId":1,"createdAt":"2025-07-19T13:33:37.253239","updatedAt":"2025-07-19T13:33:37.253239","reviewStatus":1},{"id":3,"content":"1","rating":5,"userId":null,"performanceId":1,"createdAt":"2025-07-19T13:32:44.804494","updatedAt":"2025-07-19T13:32:44.804494","reviewStatus":1}],"pageable":{"pageNumber":0,"pageSize":10,"sort":{"empty":false,"sorted":true,"unsorted":false},"offset":0,"paged":true,"unpaged":false},"last":true,"totalElements":8,"totalPages":1,"size":10,"number":0,"sort":{"empty":false,"sorted":true,"unsorted":false},"first":true,"numberOfElements":8,"empty":false}])
+
 
     // 获取评价数据
     const fetchData = async () => {
-      loading.value = true
+    loading.value = true;
+    try {
+    // 使用静态测试数据代替API调用
+    const testData = {
+      content: [
+        {
+          id: 19,
+          content: "test",
+          rating: 4,
+          userId: 11,
+          performanceId: 2,
+          createdAt: "2025-07-22T13:42:30.30847",
+          updatedAt: "2025-07-22T13:42:30.308502",
+          reviewStatus: 1
+        },
+        {
+      "id": 18,
+      "content": "test",
+      "rating": 5,
+      "userId": null,
+      "performanceId": 2,
+      "createdAt": "2025-07-22T13:41:00.116832",
+      "updatedAt": "2025-07-22T13:41:00.116928",
+      "reviewStatus": 1
+    },
+    {
+      "id": 17,
+      "content": "5",
+      "rating": 4,
+      "userId": null,
+      "performanceId": 1,
+      "createdAt": "2025-07-22T13:37:16.847169",
+      "updatedAt": "2025-07-22T13:37:16.847211",
+      "reviewStatus": 1
+    },
+    {
+      "id": 16,
+      "content": "5",
+      "rating": 5,
+      "userId": 11,
+      "performanceId": 1,
+      "createdAt": "2025-07-22T13:30:15.557556",
+      "updatedAt": "2025-07-22T13:30:15.557605",
+      "reviewStatus": 1
+    },
+    {
+      "id": 10,
+      "content": "excellent",
+      "rating": 5,
+      "userId": null,
+      "performanceId": 1,
+      "createdAt": "2025-07-19T16:24:26.572034",
+      "updatedAt": "2025-07-19T16:24:26.572034",
+      "reviewStatus": 1
+    },
+    {
+      "id": 9,
+      "content": "great",
+      "rating": 5,
+      "userId": null,
+      "performanceId": 2,
+      "createdAt": "2025-07-19T16:15:59.956511",
+      "updatedAt": "2025-07-19T16:15:59.956511",
+      "reviewStatus": 1
+    },
+    {
+      "id": 4,
+      "content": "1",
+      "rating": 4,
+      "userId": null,
+      "performanceId": 1,
+      "createdAt": "2025-07-19T13:33:37.253239",
+      "updatedAt": "2025-07-19T13:33:37.253239",
+      "reviewStatus": 1
+    },
+    {
+      "id": 3,
+      "content": "1",
+      "rating": 5,
+      "userId": null,
+      "performanceId": 1,
+      "createdAt": "2025-07-19T13:32:44.804494",
+      "updatedAt": "2025-07-19T13:32:44.804494",
+      "reviewStatus": 1
+    },
+    // 待审核的评价 (status=0)
+        { id: 20, content: "新评价", rating: 3, userId: 12, performanceId: 3, createdAt: "2025-07-23T10:00:00.000000", updatedAt: "2025-07-23T10:00:00.000000", reviewStatus: 0 },
+
+        // 违规的评价 (status=2)
+        { id: 21, content: "垃圾广告", rating: 1, userId: null, performanceId: 1, createdAt: "2025-07-22T14:00:00.000000", updatedAt: "2025-07-22T14:00:00.000000", reviewStatus: 2 }
+
+        // 其他测试数据项...
+      ],
+
+    };
+
+    // 获取当前Tab对应的状态值
+    const targetStatus = getStatusByTab(activeTab.value);
+
+    // 筛选出符合当前状态的数据
+    const filteredContent = testData.content.filter(
+      item => item.reviewStatus === targetStatus
+    );
+
+    // 转换数据结构
+    tableData.value = filteredContent.map(item => ({
+      id: item.id,
+      content: item.content,
+      rating: item.rating,
+      performanceName: `剧目ID: ${item.performanceId}`,
+      username: item.userId ? `用户${item.userId}` : '匿名用户',
+      createdAt: item.createdAt,
+      reviewStatus: item.reviewStatus
+    }));
+
+    /* 处理测试数据
+    tableData.value = testData.content.map(item => ({
+      id: item.id,
+      content: item.content,
+      rating: item.rating,
+      performanceName: `剧目ID: ${item.performanceId}`,
+      username: item.userId ? `用户${item.userId}` : '匿名用户',
+      createdAt: item.createdAt,
+      reviewStatus: item.reviewStatus
+    }));*/
+
+    total.value = testData.totalElements;
+
+    // 模拟API延迟
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+  } catch (error) {
+    console.error('数据加载错误:', error);
+    ElMessage.error('数据加载失败: ' + error.message);
+    tableData.value = [];
+    total.value = 0;
+  } finally {
+    loading.value = false;
+  }
+};
+/*
+    const fetchData = async () => {
+      loading.value = true;
       try {
-        const status = getStatusByTab(activeTab.value)
+        const status = getStatusByTab(activeTab.value);
         const response = await getReviewsByStatus(
-          status,
-          currentPage.value - 1,
-          pageSize.value
-        )
+        status,
+        currentPage.value - 1,  // 注意页码转换（前端从1开始，API从0开始）
+        pageSize.value,
+        keyword.value          // 新增的关键词搜索参数
+        );
+
+        // 防御性编程
+      //tableData.value = response?.data?.content?.map(item => ({
+      // 直接使用返回的数组
+    tableData.value = reviewsArray.map(item => ({
+      id: item.id || 0,
+      content: item.content || '',
+      rating: item.rating || 0,
+      performanceName: `剧目ID: ${item.performanceId}`, // 根据performanceId显示
+      username: item.userId ? `用户${item.userId}` : '匿名用户', // 根据userId显示
+      createdAt: item.createdAt || new Date().toISOString(),
+      reviewStatus: item.reviewStatus || 0
+    })) ;
+
+/*
+    tableData.value = response.content; // 直接使用已映射好的数据
+    total.value = response.totalElements;
+    totalPages.value = response.totalPages || 0; // 新增总页数
+
+
 
         tableData.value = response.content.map(item => ({
           id: item.id,
@@ -171,15 +325,22 @@ export default {
           username: item.username || '匿名用户',
           createdAt: item.createdAt,
           reviewStatus: item.reviewStatus
-        }))
-        total.value = response.totalElements
+        }))*/
+
+       // 如果没有分页信息，可以设置默认值
+        /*total.value = reviewsArray.length; // 或者从其他接口获取总数
+        //total.value = response.totalElements || 0; // 如果API返回总数
       } catch (error) {
         console.error('API请求错误:', error)
-        ElMessage.error('数据加载失败: ' + (error.response?.data?.message || error.message))
+        ElMessage.error('数据加载失败: ' + (error.response?.data?.message || error.message));
+        tableData.value = [];
+        total.value = 0;
       } finally {
-        loading.value = false
+        loading.value = false;
       }
-    }
+    };*/
+
+
 
     // Tab状态转换
     const getStatusByTab = (tab) => {
@@ -214,39 +375,45 @@ export default {
     }
 
     // 操作处理
-    const approve = async (id) => {
-      try {
-        await ElMessageBox.confirm('确定通过该评价吗？', '提示', {
-          type: 'warning',
-          confirmButtonText: '确定',
-          cancelButtonText: '取消'
-        })
-        await updateReviewStatus(id, 1)
-        ElMessage.success('审核通过')
-        fetchData()
-      } catch (error) {
-        if (error !== 'cancel') {
-          ElMessage.error('操作失败: ' + (error.response?.data?.message || error.message))
-        }
-      }
+const approve = async (id) => {
+  try {
+    await ElMessageBox.confirm('确定通过该评价吗？', '提示', {
+      type: 'warning',
+      confirmButtonText: '确定',
+      cancelButtonText: '取消'
+    });
+    // 调用API将评价状态更新为1(通过)
+    await updateReviewStatus(id, 1);
+    ElMessage.success('审核通过');
+    // 刷新数据
+    await fetchData();
+  } catch (error) {
+    // 只有当错误不是用户取消操作时才显示错误消息
+    if (error !== 'cancel') {
+      ElMessage.error('操作失败: ' + (error.response?.data?.message || error.message));
     }
+  }
+};
 
-    const reject = async (id) => {
-      try {
-        await ElMessageBox.confirm('确定拒绝该评价吗？', '提示', {
-          type: 'warning',
-          confirmButtonText: '确定',
-          cancelButtonText: '取消'
-        })
-        await updateReviewStatus(id, 2)
-        ElMessage.success('已标记为违规')
-        fetchData()
-      } catch (error) {
-        if (error !== 'cancel') {
-          ElMessage.error('操作失败: ' + (error.response?.data?.message || error.message))
-        }
-      }
+const reject = async (id) => {
+  try {
+    await ElMessageBox.confirm('确定拒绝该评价吗？', '提示', {
+      type: 'warning',
+      confirmButtonText: '确定',
+      cancelButtonText: '取消'
+    });
+    // 调用API将评价状态更新为2(拒绝/违规)
+    await updateReviewStatus(id, 2);
+    ElMessage.success('已标记为违规');
+    // 刷新数据
+    await fetchData();
+  } catch (error) {
+    // 只有当错误不是用户取消操作时才显示错误消息
+    if (error !== 'cancel') {
+      ElMessage.error('操作失败: ' + (error.response?.data?.message || error.message));
     }
+  }
+};
 
     const handleDelete = async (id) => {
       try {
@@ -379,6 +546,7 @@ export default {
 
 
 /* ===== 颜色调整 ===== */
+
 .el-tabs__item {
   color: #bfa074; /* 标签颜色 */
 }
