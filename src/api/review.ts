@@ -1,35 +1,47 @@
 import axios from 'axios';
+import { authApi } from '@/api/auth';
 
-const API_BASE_URL = 'http://localhost:8080/api';
+// 使用Vite代理配置，所以使用相对路径
 const reviewApi = axios.create({
-  baseURL: API_BASE_URL,
-  // 建议添加超时设置
+  baseURL: 'http://localhost:8080/api', 
   timeout: 10000,
   withCredentials: true
 });
+
+// 添加请求拦截器来自动添加token
+reviewApi.interceptors.request.use(
+  (config) => {
+    const token = authApi.getAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // 获取评价列表（管理后台专用）
 export const getReviewsByPerformance = async (
   performanceId: number,
   page: number = 0,
   size: number = 10,
-  keyword?: string,
-  status?: number
+  rating?: number
 ) => {
   // 构建查询参数
   const params = new URLSearchParams()
   params.append('page', page.toString())
   params.append('size', size.toString())
-  if (keyword) params.append('keyword', keyword)
-  if (status !== undefined) params.append('status', status.toString())
+  if (rating) params.append('rating', rating.toString())
 
   // 确保 performanceId 是数字
-  const validId = Number(performanceId) || 0
-  const response = await reviewApi.get(`/reviews/by-status?status=${status}&${params}`)
-  //const response = await reviewApi.get(`/reviews/performance/${validId}?${params}`)
+  const validId = Number(performanceId) || 1
+  const response = await reviewApi.get(`/reviews/performance/${validId}?${params}`)
+  
   return {
     content: response.data.content || [],
-    totalElements: response.data.totalElements || 0
+    totalElements: response.data.totalElements || 0,
+    totalPages: response.data.totalPages || 0,
+    pageNumber: response.data.pageNumber || page
   }
 };
 // 更新评价状态（管理后台专用）

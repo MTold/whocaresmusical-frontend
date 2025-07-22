@@ -147,6 +147,7 @@ import {
   deleteReview,
   updateReview 
 } from '@/api/review';
+import { authApi } from '@/api/auth';
 
 const route = useRoute();
 const performanceId = Number(route.params.id) || 1; // 使用默认ID或提供空数据处理
@@ -283,9 +284,14 @@ const loadReviewStats = async () => {
 
 const loadIfReviewed = async () => {
   try {
-    hasReviewed.value = await checkUserReviewed(performanceId);
+    if (authApi.isLoggedIn()) {
+      hasReviewed.value = await checkUserReviewed(performanceId);
+    } else {
+      hasReviewed.value = false; // 未登录用户始终可以评论
+    }
   } catch (error) {
     console.error('检查评价状态失败:', error);
+    hasReviewed.value = false;
   }
 };
 
@@ -317,7 +323,7 @@ const submitReview = async () => {
     });
     
     const response = await createReview({
-      performanceId,
+      performanceId: performanceId,
       content: newReview.content,
       rating: newReview.rating
     });
@@ -332,7 +338,7 @@ const submitReview = async () => {
       rating: response.rating,
       createdAt: response.createdAt,
       performanceId: response.performanceId,
-      username: response.username || '匿名用户',
+      username: response.username || (authApi.isLoggedIn() ? localStorage.getItem('username') : '匿名用户'),
       userImage: response.userImage || null
     };
     
@@ -383,8 +389,8 @@ const editMyReview = async () => {
 // 生命周期
 onMounted(async () => {
   await Promise.all([
-    loadReviews()
-    // loadIfReviewed() - 不再需要检查是否已评价，因为没有登录机制
+    loadReviews(),
+    loadIfReviewed() // 检查是否已评价（登录用户）
   ]);
 });
 </script>

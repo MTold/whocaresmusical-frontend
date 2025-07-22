@@ -2,6 +2,7 @@ import axios from 'axios';
 import type { RegisterRequest } from '@/types/auth';
 import type { AuthResponse } from '@/types/auth';
 
+// 使用Vite代理配置，所以使用相对路径
 const API_BASE_URL = 'http://localhost:8080/api';
 
 export const authApi = {

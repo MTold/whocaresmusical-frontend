@@ -51,7 +51,7 @@ const router = useRouter();
 const registerFormRef = ref<FormInstance>();
 const loading = ref(false);
 
-const registerForm = reactive<RegisterRequest>({
+const registerForm = reactive({
   username: '',
   password: '',
   email: '',
