@@ -47,30 +47,66 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
+import type { FormInstance, FormRules } from 'element-plus';
+import { authApi } from '@/api/auth';
 
 const role = ref<'user' | 'admin'>('user');
-const loginForm = ref({ account: '', password: '' });
-const loginFormRef = ref();
+const loginForm = reactive({
+  account: '',
+  password: ''
+});
+const loginFormRef = ref<FormInstance>();
 const router = useRouter();
 
-const onLogin = () => {
-  loginFormRef.value.validate((valid: boolean) => {
-    if (!valid) return;
+const rules: FormRules = {
+  account: [
+    { required: true, message: '请输入账号', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' }
+  ]
+};
 
-    const { account, password } = loginForm.value;
-    if (role.value === 'admin' && account === '15621310003' && password === '10003') {
-      localStorage.setItem('isAdmin', 'true');
-      ElMessage.success('管理员登录成功');
-      router.replace('/admin');
-    } else if (role.value === 'user') {
-      ElMessage.info('用户登录功能待实现');
-    } else {
-      ElMessage.error('账号或密码错误');
+const onLogin = async () => {
+  try {
+    await loginFormRef.value?.validate();
+
+    // 管理员登录（临时硬编码）
+    if (role.value === 'admin') {
+      const { account, password } = loginForm;
+      if (account === '15621310003' && password === '10003') {
+        localStorage.setItem('isAdmin', 'true');
+        ElMessage.success('管理员登录成功');
+        router.replace('/admin');
+        return;
+      } else {
+        ElMessage.error('管理员账号或密码错误');
+        return;
+      }
     }
-  });
+
+    // 用户登录
+    const response = await authApi.login({
+      username: loginForm.account,
+      password: loginForm.password
+    });
+
+    authApi.setAuthToken(response.token);
+    localStorage.setItem('username', response.username);
+    localStorage.setItem('isAdmin', 'false');
+
+    ElMessage.success('登录成功！');
+    router.push('/');
+  } catch (error: any) {
+    if (error.response?.data) {
+      ElMessage.error(error.response.data);
+    } else {
+      ElMessage.error('登录失败，请检查账号密码');
+    }
+  }
 };
 </script>
 
