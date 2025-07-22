@@ -23,12 +23,12 @@ const routes = [
         props: true,
         component: () => import('@/views/user/TheaterDetailView.vue'),
       },
-      { path: 'shows', name: 'shows', component: () => import('@/views/user/ShowListView.vue') },
+      { path: 'shows', name: 'shows', component: () => import('@/views/user/MusicalListView.vue') },
       {
         path: 'shows/:id',
         name: 'ShowDetail',
         props: true,
-        component: () => import('@/views/user/ShowDetailView.vue'),
+        component: () => import('@/views/user/MusicalDetailView.vue'),
       },
       {
         path: 'shows/:id/review',
