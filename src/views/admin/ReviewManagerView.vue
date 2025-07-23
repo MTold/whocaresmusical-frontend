@@ -122,7 +122,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import StarRating from '@/components/common/StarRating.vue'
-import {
+import review, {
   getReviewsByStatus,
   updateReviewStatus,
   deleteReview
@@ -276,7 +276,7 @@ export default {
     }));
 
 
-    total.value = testData.totalElements;
+    total.value = review.totalElements;
     } catch (error) {
       console.error('数据加载错误:', error);
       ElMessage.error('数据加载失败: ' + error.message);
