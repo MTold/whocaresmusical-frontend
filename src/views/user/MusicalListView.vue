@@ -17,7 +17,13 @@
       -->
     </div>
     <div class="shows-gallery">
-      <div v-if="musicals.length > 0" class="shows-grid">
+      <!-- 如果正在加载，则显示"内容加载中" -->
+      <div v-if="loading" class="loading">
+        <p>内容加载中...</p>
+      </div>
+
+      <!-- 显示音乐剧列表 -->
+      <div v-if="musicals.length > 0 && !loading" class="shows-grid">
         <div
           v-for="show in musicals"
           :key="show.id"
@@ -28,7 +34,9 @@
           <p class="show-name">{{ show.name }}</p>
         </div>
       </div>
-      <div v-else>
+
+      <!-- 如果没有剧目，显示提示信息 -->
+      <div v-else-if="!loading">
         <p>没有符合条件的剧目。</p>
       </div>
     </div>
@@ -45,6 +53,7 @@ export default defineComponent({
     const router = useRouter();
     const musicals = ref<any[]>([]);  // 存储音乐剧列表
     const errorMessage = ref(''); // 存储错误信息
+    const loading = ref(true); // 控制加载状态
 
     // 获取所有音乐剧数据
     const fetchMusicals = async () => {
@@ -53,6 +62,8 @@ export default defineComponent({
       } catch (error) {
         console.error('获取音乐剧失败:', error);
         errorMessage.value = '无法加载音乐剧数据，请稍后再试。'; // 错误提示
+      } finally {
+        loading.value = false; // 加载完成后，设置加载状态为 false
       }
     };
 
@@ -70,6 +81,7 @@ export default defineComponent({
       musicals,
       goToDetail,
       errorMessage,
+      loading, // 返回loading状态
     };
   }
 });
@@ -134,6 +146,13 @@ export default defineComponent({
 }
 
 .no-shows {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
+}
+
+.loading {
   text-align: center;
   padding: 40px;
   font-size: 18px;

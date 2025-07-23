@@ -5,27 +5,34 @@
       <div class="show-info">
         <p class="show-name">{{ show.name }}</p>
         <p class="show-category">{{ show.category }}</p>
-        <p class="show-description">{{ show.description }}</p>
+        <p class="show-description" v-html="show.description"></p> <!-- 使用 v-html 使换行符生效 -->
       </div>
     </div>
+
     <div class="schedule-table">
-      <table>
-        <thead> <!-- 补上 thead 标签 -->
-          <tr>
-            <th>日期</th>
-            <th>时间</th>
-            <th>地点</th>
-          </tr>
+      <table v-if="show.schedules.length > 0">
+        <thead>
+        <tr>
+          <th>日期</th>
+          <th>时间</th>
+          <th>演员</th>
+        </tr>
         </thead>
         <tbody>
-          <tr v-for="schedule in show.schedules" :key="schedule.id">
-            <td>{{ schedule.date }}</td>
-            <td>{{ schedule.time }}</td>
-            <td>{{ schedule.location }}</td>
-          </tr>
+        <tr v-for="schedule in show.schedules" :key="schedule.id">
+          <td>{{ schedule.date }}</td>
+          <td>{{ schedule.time }}</td>
+          <td>{{ schedule.cast }}</td> <!-- 演员信息 -->
+        </tr>
         </tbody>
       </table>
+
+      <!-- 如果排期为空，显示对应文字 -->
+      <div v-else class="no-schedules">
+        <p>没有排期信息</p>
+      </div>
     </div>
+
     <div class="footer">
       <button @click="goToReview">查看更多评价...</button>
     </div>
@@ -33,36 +40,62 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router' // 补充 useRouter
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import axios from 'axios';
 
-const route = useRoute()
-const router = useRouter() // 获取 router 实例
-const showId = Number(route.params.id)
+const route = useRoute();
+const router = useRouter();
+const showId = Number(route.params.id);
 
-// 用 ShowListView 的静态数据
-const showList = [
-  { id: 1, name: '哈姆雷特', category: 'Ca1', image: 'https://img1.doubanio.com/pview/drama_subject_poster/m/public/c18ea468e1fbf29.jpg', description: '莎士比亚经典悲剧', schedules: [{ id: 1, date: '2025-07-20', time: '19:00', location: '剧院A' }] },
-  { id: 2, name: '剧院魅影', category: 'Ca2', image: 'https://img1.doubanio.com/pview/drama_subject_poster/m/public/65f4e84e65cfdf0.jpg', description: '音乐剧经典', schedules: [{ id: 2, date: '2025-07-21', time: '20:00', location: '剧院B' }] },
-  { id: 3, name: 'Show 3', category: 'Ca3', image: 'show3.jpg', description: '描述3', schedules: [{ id: 3, date: '2025-07-22', time: '18:00', location: '剧院C' }] },
-  { id: 4, name: 'Show 4', category: 'ca4', image: 'show4.jpg', description: '描述4', schedules: [{ id: 4, date: '2025-07-23', time: '19:30', location: '剧院D' }] },
-  { id: 5, name: 'Show 5', category: 'Ca2', image: 'show5.jpg', description: '描述5', schedules: [{ id: 5, date: '2025-07-24', time: '20:30', location: '剧院E' }] },
-  { id: 6, name: 'Show 6', category: 'Ca3', image: 'show6.jpg', description: '描述6', schedules: [{ id: 6, date: '2025-07-25', time: '21:00', location: '剧院F' }] },
-]
-
-// 根据 id 查找剧目
-const show = ref(showList.find(item => item.id === showId) || {
+// 定义 show 数据对象，包含排期字段
+const show = ref({
   id: showId,
-  name: '未知剧目',
+  name: '',
   category: '',
   description: '',
   image: '',
-  schedules: []
-})
+  schedules: [] as Array<{
+    id: number;
+    date: string;
+    time: string;
+    cast: string;
+  }>,  //
+});
 
+const fetchShowDetails = async () => {
+  try {
+    const response = await axios.get(`http://localhost:8080/api/musicals/${showId}`);
+    const data = response.data;
+
+    // 处理排期数据
+    show.value = {
+      id: data.id,
+      name: data.name,
+      category: data.original ? '原创' : '非原创',
+      description: data.info.replace(/\r\n/g, '<br/>'), // 转换换行符为 <br/>
+      image: data.imageUrl,
+      schedules: data.shows.map((schedule: any) => ({
+        id: schedule.id,
+        date: schedule.date,
+        time: schedule.time,
+        cast: schedule.cast,
+      })),
+    };
+  } catch (error) {
+    console.error('获取剧目信息失败:', error);
+  }
+};
+
+// 页面加载时获取剧目信息
+onMounted(() => {
+  fetchShowDetails();
+});
+
+// 跳转到评价页面
 const goToReview = () => {
-  router.push(`/shows/${showId}/review`)
-}
+  router.push(`/shows/${showId}/review`);
+};
 </script>
 
 <style scoped>
@@ -119,8 +152,20 @@ td {
   text-align: center;
 }
 
+/* 如果没有排期信息 */
+.no-schedules {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
+}
+
+/* 底部样式 */
 .footer {
-  margin-top: 20px;
+  margin-top: 40px;
+  width: 100%;
+  text-align: center;
+  margin-bottom:100px;
 }
 
 button {
@@ -130,5 +175,28 @@ button {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+}
+
+/* 响应式样式 */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .show-image {
+    width: 150px;
+    height: 225px;
+  }
+}
+
+@media (max-width: 480px) {
+  .show-name {
+    font-size: 14px;
+  }
+
+  .show-description {
+    font-size: 14px;
+  }
 }
 </style>

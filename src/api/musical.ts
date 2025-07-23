@@ -40,6 +40,17 @@ export const getAllMusicals = async () => {
   }
 };
 
+// 根据 id 查询指定的音乐剧
+export const getMusicalById = async (id:number) => {
+  try {
+    const response = await axios.get(`/${id}`);
+    return response.data || null;
+  } catch (error) {
+    console.error(`Error fetching musical with id ${id}:`, error);
+    return null;
+  }
+};
+
 export default {
   getOriginalMusicals,
   getNonOriginalMusicals,
