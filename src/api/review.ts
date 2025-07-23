@@ -13,17 +13,22 @@ export const getReviewsByStatus = async (
   status: number,
   page: number = 0,
   size: number = 10,
-  keyword?: string
+  //keyword?: string 可选关键词参数，要求后端也要对应
 ) => {
-  const params = {
-    status,
-    page,
-    size,
-    ...(keyword && { keyword })
-  };
+  const params = new URLSearchParams({
+    status: status.toString(),
+    page: page.toString(),
+    size: size.toString()
+    //if (keyword) {params.append('keyword', keyword);}
+  })
 
-  const response = await reviewApi.get(`/reviews/by-status`, { params });
-  return response.data; // 确保返回的是数组
+  const response = await reviewApi.get(`/reviews/by-status`, { params })
+  return {
+    content: response.data.content || [],
+    totalElements: response.data.totalElements || 0,
+    totalPages: response.data.totalPages || 0,
+    pageNumber: response.data.pageNumber || page
+  }
 
 
 /*return {

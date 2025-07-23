@@ -14,7 +14,7 @@
       <!-- 占位空白，宽度就是你想留的距离 -->
       <span class="divider"></span>
 
-      <!-- 搜索框 -->
+<!-- 搜索框 -->
       <div class="search-wrapper">
         <el-input
           v-model="keyword"
@@ -135,20 +135,35 @@ export default {
   setup() {
     // 状态管理
     const activeTab = ref('')// 'passed'|'pending'|'violation'
-    const keyword = ref('')
+    //关键词const keyword = ref('')
     const currentPage = ref(1)
     const pageSize = ref(10)
     const total = ref(0)
     const loading = ref(false)
-    const tableData = ref([{"content":[{"id":19,"content":"test","rating":4,"userId":11,"performanceId":2,"createdAt":"2025-07-22T13:42:30.30847","updatedAt":"2025-07-22T13:42:30.308502","reviewStatus":1},{"id":18,"content":"test","rating":5,"userId":null,"performanceId":2,"createdAt":"2025-07-22T13:41:00.116832","updatedAt":"2025-07-22T13:41:00.116928","reviewStatus":1},{"id":17,"content":"5","rating":4,"userId":null,"performanceId":1,"createdAt":"2025-07-22T13:37:16.847169","updatedAt":"2025-07-22T13:37:16.847211","reviewStatus":1},{"id":16,"content":"5","rating":5,"userId":11,"performanceId":1,"createdAt":"2025-07-22T13:30:15.557556","updatedAt":"2025-07-22T13:30:15.557605","reviewStatus":1},{"id":10,"content":"excellent","rating":5,"userId":null,"performanceId":1,"createdAt":"2025-07-19T16:24:26.572034","updatedAt":"2025-07-19T16:24:26.572034","reviewStatus":1},{"id":9,"content":"great","rating":5,"userId":null,"performanceId":2,"createdAt":"2025-07-19T16:15:59.956511","updatedAt":"2025-07-19T16:15:59.956511","reviewStatus":1},{"id":4,"content":"1","rating":4,"userId":null,"performanceId":1,"createdAt":"2025-07-19T13:33:37.253239","updatedAt":"2025-07-19T13:33:37.253239","reviewStatus":1},{"id":3,"content":"1","rating":5,"userId":null,"performanceId":1,"createdAt":"2025-07-19T13:32:44.804494","updatedAt":"2025-07-19T13:32:44.804494","reviewStatus":1}],"pageable":{"pageNumber":0,"pageSize":10,"sort":{"empty":false,"sorted":true,"unsorted":false},"offset":0,"paged":true,"unpaged":false},"last":true,"totalElements":8,"totalPages":1,"size":10,"number":0,"sort":{"empty":false,"sorted":true,"unsorted":false},"first":true,"numberOfElements":8,"empty":false}])
+    const tableData = ref([])
+    //给定数据
+    // const tableData = ref([{"content":[{"id":19,"content":"test","rating":4,"userId":11,"performanceId":2,"createdAt":"2025-07-22T13:42:30.30847","updatedAt":"2025-07-22T13:42:30.308502","reviewStatus":1},{"id":18,"content":"test","rating":5,"userId":null,"performanceId":2,"createdAt":"2025-07-22T13:41:00.116832","updatedAt":"2025-07-22T13:41:00.116928","reviewStatus":1},{"id":17,"content":"5","rating":4,"userId":null,"performanceId":1,"createdAt":"2025-07-22T13:37:16.847169","updatedAt":"2025-07-22T13:37:16.847211","reviewStatus":1},{"id":16,"content":"5","rating":5,"userId":11,"performanceId":1,"createdAt":"2025-07-22T13:30:15.557556","updatedAt":"2025-07-22T13:30:15.557605","reviewStatus":1},{"id":10,"content":"excellent","rating":5,"userId":null,"performanceId":1,"createdAt":"2025-07-19T16:24:26.572034","updatedAt":"2025-07-19T16:24:26.572034","reviewStatus":1},{"id":9,"content":"great","rating":5,"userId":null,"performanceId":2,"createdAt":"2025-07-19T16:15:59.956511","updatedAt":"2025-07-19T16:15:59.956511","reviewStatus":1},{"id":4,"content":"1","rating":4,"userId":null,"performanceId":1,"createdAt":"2025-07-19T13:33:37.253239","updatedAt":"2025-07-19T13:33:37.253239","reviewStatus":1},{"id":3,"content":"1","rating":5,"userId":null,"performanceId":1,"createdAt":"2025-07-19T13:32:44.804494","updatedAt":"2025-07-19T13:32:44.804494","reviewStatus":1}],"pageable":{"pageNumber":0,"pageSize":10,"sort":{"empty":false,"sorted":true,"unsorted":false},"offset":0,"paged":true,"unpaged":false},"last":true,"totalElements":8,"totalPages":1,"size":10,"number":0,"sort":{"empty":false,"sorted":true,"unsorted":false},"first":true,"numberOfElements":8,"empty":false}])
 
 
     // 获取评价数据
     const fetchData = async () => {
     loading.value = true;
     try {
+      // 获取当前Tab对应的状态值
+        const targetStatus = getStatusByTab(activeTab.value);
+
+    // 调用API获取数据
+    const response = await getReviewsByStatus(targetStatus, currentPage.value - 1, pageSize.value);
+        tableData.value = response.content.map(item => ({
+          id: item.id,
+          content: item.content,
+          rating: item.rating,
+          performanceName: item.performanceName || '未知剧目',
+          username: item.username || '匿名用户',
+          createdAt: item.createdAt,
+          reviewStatus: item.reviewStatus
     // 使用静态测试数据代替API调用
-    const testData = {
+    /*const testData = {
       content: [
         {
           id: 19,
@@ -257,89 +272,20 @@ export default {
       performanceName: `剧目ID: ${item.performanceId}`,
       username: item.userId ? `用户${item.userId}` : '匿名用户',
       createdAt: item.createdAt,
-      reviewStatus: item.reviewStatus
+      reviewStatus: item.reviewStatus*/
     }));
 
-    /* 处理测试数据
-    tableData.value = testData.content.map(item => ({
-      id: item.id,
-      content: item.content,
-      rating: item.rating,
-      performanceName: `剧目ID: ${item.performanceId}`,
-      username: item.userId ? `用户${item.userId}` : '匿名用户',
-      createdAt: item.createdAt,
-      reviewStatus: item.reviewStatus
-    }));*/
 
     total.value = testData.totalElements;
-
-    // 模拟API延迟
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-  } catch (error) {
-    console.error('数据加载错误:', error);
-    ElMessage.error('数据加载失败: ' + error.message);
-    tableData.value = [];
-    total.value = 0;
-  } finally {
-    loading.value = false;
-  }
-};
-/*
-    const fetchData = async () => {
-      loading.value = true;
-      try {
-        const status = getStatusByTab(activeTab.value);
-        const response = await getReviewsByStatus(
-        status,
-        currentPage.value - 1,  // 注意页码转换（前端从1开始，API从0开始）
-        pageSize.value,
-        keyword.value          // 新增的关键词搜索参数
-        );
-
-        // 防御性编程
-      //tableData.value = response?.data?.content?.map(item => ({
-      // 直接使用返回的数组
-    tableData.value = reviewsArray.map(item => ({
-      id: item.id || 0,
-      content: item.content || '',
-      rating: item.rating || 0,
-      performanceName: `剧目ID: ${item.performanceId}`, // 根据performanceId显示
-      username: item.userId ? `用户${item.userId}` : '匿名用户', // 根据userId显示
-      createdAt: item.createdAt || new Date().toISOString(),
-      reviewStatus: item.reviewStatus || 0
-    })) ;
-
-/*
-    tableData.value = response.content; // 直接使用已映射好的数据
-    total.value = response.totalElements;
-    totalPages.value = response.totalPages || 0; // 新增总页数
-
-
-
-        tableData.value = response.content.map(item => ({
-          id: item.id,
-          content: item.content,
-          rating: item.rating,
-          performanceName: item.performanceName || '未知剧目',
-          username: item.username || '匿名用户',
-          createdAt: item.createdAt,
-          reviewStatus: item.reviewStatus
-        }))*/
-
-       // 如果没有分页信息，可以设置默认值
-        /*total.value = reviewsArray.length; // 或者从其他接口获取总数
-        //total.value = response.totalElements || 0; // 如果API返回总数
-      } catch (error) {
-        console.error('API请求错误:', error)
-        ElMessage.error('数据加载失败: ' + (error.response?.data?.message || error.message));
-        tableData.value = [];
-        total.value = 0;
-      } finally {
-        loading.value = false;
-      }
-    };*/
-
+    } catch (error) {
+      console.error('数据加载错误:', error);
+      ElMessage.error('数据加载失败: ' + error.message);
+      tableData.value = [];
+      total.value = 0;
+   } finally {
+      loading.value = false;
+    }
+  };
 
 
     // Tab状态转换
@@ -458,7 +404,7 @@ const reject = async (id) => {
 
     return {
       activeTab,
-      keyword,
+      //keyword,
       currentPage,
       pageSize,
       total,
