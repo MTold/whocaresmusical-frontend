@@ -57,14 +57,10 @@ import { ElMessage } from 'element-plus'
 import { Star, StarFilled } from '@element-plus/icons-vue'
 import { checkFavoriteStatus, addFavorite, removeFavorite } from '@/api/favorite'
 import { recordBrowsing } from '@/api/history'
-import axios from 'axios';
-
+import axios from 'axios'
 const route = useRoute()
 const router = useRouter()
 const showId = Number(route.params.id)
-const route = useRoute();
-const router = useRouter();
-const showId = Number(route.params.id);
 
 // 定义 show 数据对象，包含排期字段
 const show = ref({
@@ -189,8 +185,6 @@ onUnmounted(() => {
   document.removeEventListener('visibilitychange', handleVisibilityChange)
   window.removeEventListener('favorite-changed', handleFavoriteChange as EventListener)
 })
-  router.push(`/shows/${showId}/review`);
-};
 </script>
 
 <style scoped>
