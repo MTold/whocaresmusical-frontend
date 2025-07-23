@@ -58,7 +58,7 @@ const routes = [
           {
             path: 'browse-history',
             name: 'BrowseHistory',
-            component: () => import('@/views/profile/BrowseHistory.vue'),
+            component: () => import('@/views/profile/BrowsingHistory.vue'),
           },
           { path: 'faq', name: 'FAQ', component: () => import('@/views/profile/FAQ.vue') },
           {

@@ -77,7 +77,7 @@ export const getReviewsByPerformance = async (
 
   // 确保 performanceId 是数字
   const validId = Number(performanceId) || 1
-  const response = await reviewApi.get(`/reviews/performance/${validId}?${params}`)
+  const response = await reviewApi.get(`/reviews/musical/${validId}?${params}`)
 
   return {
     content: response.data.content || [],
@@ -103,12 +103,12 @@ export const deleteReview = async (reviewId: number) => {
 
 // 以下原有方法保持不变（用户端功能）
 export const getReviewStatistics = async (performanceId: number) => {
-  const response = await reviewApi.get(`/reviews/performance/${performanceId}/statistics`);
+  const response = await reviewApi.get(`/reviews/musical/${performanceId}/statistics`);
   return response.data;
 };
 
 export const createReview = async (reviewData: {
-  performanceId: number;
+  musicalId: number;
   content: string;
   rating: number;
 }) => {
@@ -116,8 +116,8 @@ export const createReview = async (reviewData: {
   return response.data;
 };
 
-export const checkUserReviewed = async (performanceId: number) => {
-  const response = await reviewApi.get(`/reviews/check/${performanceId}`);
+export const checkUserReviewed = async (musicalId: number) => {
+  const response = await reviewApi.get(`/reviews/check/${musicalId}`);
   return response.data;
 };
 

@@ -317,7 +317,7 @@ const submitReview = async () => {
     });
 
     const response = await createReview({
-      performanceId,
+      musicalId: performanceId,
       content: newReview.content,
       rating: newReview.rating
     });
