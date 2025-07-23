@@ -32,7 +32,7 @@ const menuItems: MenuItem[] = [
   { key: 'my-info', label: '个人信息管理', routeName: 'MyInfo' },
   { key: 'my-reviews', label: '我的评价', routeName: 'MyReviews' },
   { key: 'favorite-shows', label: '收藏剧目', routeName: 'FavoriteShows' },
-  { key: 'browse-history', label: '历史浏览记录', routeName: 'BrowseHistory' },
+  { key: 'browse-history', label: '浏览历史', routeName: 'BrowseHistory' },
   { key: 'other-group', label: '其他', group: true },
   { key: 'faq', label: '常见问题', routeName: 'FAQ' },
   { key: 'messages', label: '消息中心', routeName: 'Messages' },

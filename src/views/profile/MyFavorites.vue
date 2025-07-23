@@ -41,7 +41,7 @@
               <el-button 
                 type="danger" 
                 :icon="Delete" 
-                @click="handleRemoveFavorite(item.musicalId)"
+                @click="removeFavorite(item.musicalId)"
                 :loading="removeLoading[item.musicalId]"
               >
                 取消收藏
@@ -87,10 +87,8 @@ const fetchFavorites = async () => {
   loading.value = true
   try {
     const response = await getUserFavorites(currentPage.value - 1, pageSize.value)
-    console.log('API Response:', response)
-    // Spring Data Page对象结构是 response.data.content
-    favorites.value = response.data?.content || []
-    totalElements.value = response.data?.totalElements || 0
+    favorites.value = response.content || []
+    totalElements.value = response.totalElements || 0
   } catch (error) {
     console.error('获取收藏列表失败:', error)
     ElMessage.error('获取收藏列表失败，请稍后重试')
@@ -101,7 +99,6 @@ const fetchFavorites = async () => {
 
 // 格式化日期
 const formatDate = (dateString: string) => {
-  if (!dateString) return ''
   const date = new Date(dateString)
   return date.toLocaleDateString('zh-CN', {
     year: 'numeric',
@@ -113,7 +110,7 @@ const formatDate = (dateString: string) => {
 }
 
 // 取消收藏
-const handleRemoveFavorite = async (musicalId: number) => {
+const removeFavorite = async (musicalId: number) => {
   try {
     await ElMessageBox.confirm(
       '确定要取消收藏这个剧目吗？',
@@ -129,9 +126,6 @@ const handleRemoveFavorite = async (musicalId: number) => {
     await removeFavorite(musicalId)
     ElMessage.success('取消收藏成功')
     await fetchFavorites()
-    
-    // 触发自定义事件，通知其他组件状态已变更
-    window.dispatchEvent(new CustomEvent('favorite-changed', { detail: { musicalId, isFavorite: false } }))
   } catch (error) {
     if (error !== 'cancel') {
       console.error('取消收藏失败:', error)
@@ -154,23 +148,9 @@ const handleCurrentChange = (page: number) => {
   fetchFavorites()
 }
 
-// 当页面重新可见时刷新收藏列表
-const handleVisibilityChange = () => {
-  if (!document.hidden) {
-    fetchFavorites()
-  }
-}
-
 // 初始化加载
 onMounted(() => {
   fetchFavorites()
-  document.addEventListener('visibilitychange', handleVisibilityChange)
-})
-
-// 清理事件监听器
-import { onUnmounted } from 'vue'
-onUnmounted(() => {
-  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>
 

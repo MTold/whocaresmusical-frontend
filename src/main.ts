@@ -7,6 +7,10 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import ElementPlus from 'element-plus'
+import setupAxios from './utils/axios-config'
+
+// 设置axios拦截器
+setupAxios()
 
 const app = createApp(App) // 只传入根组件
 
