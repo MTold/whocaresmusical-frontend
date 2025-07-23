@@ -5,6 +5,17 @@
       <div class="show-info">
         <p class="show-name">{{ show.name }}</p>
         <p class="show-category">{{ show.category }}</p>
+        <p class="show-description">{{ show.description }}</p>
+        <div class="actions">
+          <el-button
+            type="danger"
+            :icon="isFavorite ? StarFilled : Star"
+            :loading="favoriteLoading"
+            @click="toggleFavorite"
+          >
+            {{ isFavorite ? '已收藏' : '收藏剧目' }}
+          </el-button>
+        </div>
         <p class="show-description" v-html="show.description"></p> <!-- 使用 v-html 使换行符生效 -->
       </div>
     </div>
@@ -40,10 +51,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { Star, StarFilled } from '@element-plus/icons-vue'
+import { checkFavoriteStatus, addFavorite, removeFavorite } from '@/api/favorite'
+import { recordBrowsing } from '@/api/history'
 import axios from 'axios';
 
+const route = useRoute()
+const router = useRouter()
+const showId = Number(route.params.id)
 const route = useRoute();
 const router = useRouter();
 const showId = Number(route.params.id);
@@ -94,6 +112,83 @@ onMounted(() => {
 
 // 跳转到评价页面
 const goToReview = () => {
+  router.push(`/shows/${showId}/review`)
+}
+
+// 收藏相关状态
+const isFavorite = ref(false)
+const favoriteLoading = ref(false)
+
+// 检查收藏状态
+const checkFavorite = async () => {
+  try {
+    const response = await checkFavoriteStatus(showId)
+    console.log(`剧目 ${showId} 收藏状态:`, response.data)
+    isFavorite.value = response.data
+  } catch (error) {
+    console.error('检查收藏状态失败:', error)
+  }
+}
+
+// 切换收藏状态
+const toggleFavorite = async () => {
+  favoriteLoading.value = true
+  try {
+    if (isFavorite.value) {
+      await removeFavorite(showId)
+      ElMessage.success('已取消收藏')
+      window.dispatchEvent(new CustomEvent('favorite-changed', { detail: { musicalId: showId, isFavorite: false } }))
+    } else {
+      await addFavorite(showId)
+      ElMessage.success('收藏成功')
+      window.dispatchEvent(new CustomEvent('favorite-changed', { detail: { musicalId: showId, isFavorite: true } }))
+    }
+    isFavorite.value = !isFavorite.value
+  } catch (error: any) {
+    ElMessage.error(error?.response?.data?.message || '操作失败')
+  } finally {
+    favoriteLoading.value = false
+  }
+}
+
+// 当页面重新可见时刷新收藏状态
+const handleVisibilityChange = () => {
+  if (!document.hidden) {
+    checkFavorite()
+  }
+}
+
+// 监听收藏状态变更事件
+const handleFavoriteChange = (event: CustomEvent) => {
+  if (event.detail.musicalId === showId) {
+    isFavorite.value = event.detail.isFavorite
+  }
+}
+
+onMounted(() => {
+  checkFavorite()
+  recordBrowsing(showId)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  window.addEventListener('favorite-changed', handleFavoriteChange as EventListener)
+})
+
+// 监听路由参数变化
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (newId) {
+      showId = Number(newId)
+      checkFavorite()
+      recordBrowsing(showId)
+    }
+  }
+)
+
+// 清理事件监听器
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+  window.removeEventListener('favorite-changed', handleFavoriteChange as EventListener)
+})
   router.push(`/shows/${showId}/review`);
 };
 </script>
@@ -120,6 +215,13 @@ const goToReview = () => {
 
 .show-info {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.actions {
+  margin-top: 20px;
 }
 
 .show-name {

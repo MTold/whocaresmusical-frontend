@@ -11,11 +11,10 @@
         <el-tab-pane label="待审核" name="pending" />
         <el-tab-pane label="违规信息" name="violation" />
       </el-tabs>
-
       <!-- 占位空白，宽度就是你想留的距离 -->
       <span class="divider"></span>
 
-      <!-- 搜索框 -->
+<!-- 搜索框 -->
       <div class="search-wrapper">
         <el-input
           v-model="keyword"
@@ -24,7 +23,7 @@
           @keyup.enter="handleSearch"
           @clear="handleSearch"
         />
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <el-button type="primary" @click="handleSearch" link>搜索</el-button>
       </div>
     </div>
 
@@ -32,51 +31,74 @@
     <div class="table-wrapper">
       <el-table
         :data="tableData"
-        stripe
+        border
         style="width: 100%"
         v-loading="loading"
         empty-text="暂无数据"
       >
-        <el-table-column prop="id" label="编号" width="80" align="center" />
-        <el-table-column prop="showName" label="剧目" width="180" show-overflow-tooltip />
-        <el-table-column prop="username" label="用户" width="120" />
-        <el-table-column prop="rating" label="评分" width="100" align="center">
+        <el-table-column
+          fixed
+          prop="id"
+          label="编号"
+          width="80"
+        />
+        <el-table-column
+          prop="content"
+          label="评价内容"
+          width="300"
+        />
+        <el-table-column
+          prop="rating"
+          label="评分"
+          width="100"
+        >
           <template #default="{ row }">
-            <star-rating
-              :model-value="row.rating"
-              :readonly="true"
-              :star-size="20"
-            />
+            <star-rating :model-value="row.rating" :readonly="true" :star-size="20" />
           </template>
         </el-table-column>
-        <el-table-column prop="content" label="评价内容" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="createdAt" label="时间" width="160">
+        <el-table-column
+          prop="performanceName"
+          label="剧目"
+          width="180"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="username"
+          label="用户"
+          width="120"
+        />
+        <el-table-column
+          prop="createdAt"
+          label="时间"
+          width="160"
+        >
           <template #default="{ row }">
             {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right" align="center">
+        <el-table-column
+          v-if="activeTab === 'pending'"
+          fixed="right"
+          label="操作"
+          width="220"
+          align="center"
+
+        >
           <template #default="{ row }">
-            <el-button size="small" @click="openDetail(row)">详情</el-button>
-            <el-button
-              v-if="row.status === 0"
-              size="small"
-              type="success"
-              @click="approve(row.id)"
-            >通过</el-button>
-            <el-button
-              v-if="row.status === 0"
-              size="small"
-              type="danger"
-              @click="reject(row.id)"
-            >拒绝</el-button>
-            <el-button
-              size="small"
-              type="danger"
-              plain
-              @click="handleDelete(row.id)"
-            >删除</el-button>
-          </template>
+  <el-button
+    size="small"
+    type="success"
+    link
+    @click="approve(row.id)"
+    v-if="row.reviewStatus === 0">通过</el-button>
+
+  <el-button
+    size="small"
+    type="danger"
+    link
+    @click="reject(row.id)"
+    v-if="row.reviewStatus === 0" >拒绝</el-button>
+</template>
         </el-table-column>
       </el-table>
 
@@ -100,12 +122,11 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import StarRating from '@/components/common/StarRating.vue'
-import {
-  getReviewsByPerformance,
+import review, {
+  getReviewsByStatus,
   updateReviewStatus,
-  deleteReview,
-  createReview
-} from '@/api/review'  // 确保路径正确
+  deleteReview
+} from '@/api/review'
 
 export default {
   components: {
@@ -113,64 +134,159 @@ export default {
   },
   setup() {
     // 状态管理
-    const activeTab = ref('pending') // 'passed'|'pending'|'violation'
-    const keyword = ref('')
+    const activeTab = ref('')// 'passed'|'pending'|'violation'
+    //关键词const keyword = ref('')
     const currentPage = ref(1)
     const pageSize = ref(10)
     const total = ref(0)
     const loading = ref(false)
     const tableData = ref([])
-    const newReview = ref({
-      performanceId: '',
-      content: '',
-      rating: 0})
-    const statusMap = {
-      0: '待审核',
-      1: '已通过',
-      2: '违规'
-    }
+    //给定数据
+    // const tableData = ref([{"content":[{"id":19,"content":"test","rating":4,"userId":11,"performanceId":2,"createdAt":"2025-07-22T13:42:30.30847","updatedAt":"2025-07-22T13:42:30.308502","reviewStatus":1},{"id":18,"content":"test","rating":5,"userId":null,"performanceId":2,"createdAt":"2025-07-22T13:41:00.116832","updatedAt":"2025-07-22T13:41:00.116928","reviewStatus":1},{"id":17,"content":"5","rating":4,"userId":null,"performanceId":1,"createdAt":"2025-07-22T13:37:16.847169","updatedAt":"2025-07-22T13:37:16.847211","reviewStatus":1},{"id":16,"content":"5","rating":5,"userId":11,"performanceId":1,"createdAt":"2025-07-22T13:30:15.557556","updatedAt":"2025-07-22T13:30:15.557605","reviewStatus":1},{"id":10,"content":"excellent","rating":5,"userId":null,"performanceId":1,"createdAt":"2025-07-19T16:24:26.572034","updatedAt":"2025-07-19T16:24:26.572034","reviewStatus":1},{"id":9,"content":"great","rating":5,"userId":null,"performanceId":2,"createdAt":"2025-07-19T16:15:59.956511","updatedAt":"2025-07-19T16:15:59.956511","reviewStatus":1},{"id":4,"content":"1","rating":4,"userId":null,"performanceId":1,"createdAt":"2025-07-19T13:33:37.253239","updatedAt":"2025-07-19T13:33:37.253239","reviewStatus":1},{"id":3,"content":"1","rating":5,"userId":null,"performanceId":1,"createdAt":"2025-07-19T13:32:44.804494","updatedAt":"2025-07-19T13:32:44.804494","reviewStatus":1}],"pageable":{"pageNumber":0,"pageSize":10,"sort":{"empty":false,"sorted":true,"unsorted":false},"offset":0,"paged":true,"unpaged":false},"last":true,"totalElements":8,"totalPages":1,"size":10,"number":0,"sort":{"empty":false,"sorted":true,"unsorted":false},"first":true,"numberOfElements":8,"empty":false}])
 
-    // 数据获取
+
+    // 获取评价数据
     const fetchData = async () => {
-      loading.value = true
-      try {
-        const res = await getReviewsByPerformance(
-          0, // 明确传递数字 0 而不是对象
-          currentPage.value - 1,
-          pageSize.value,
-          keyword.value,
-          activeTab.value === 'passed' ? 1 :
-          activeTab.value === 'violation' ? 2 : 0
-        )
+    loading.value = true;
+    try {
+      // 获取当前Tab对应的状态值
+        const targetStatus = getStatusByTab(activeTab.value);
 
-        tableData.value = res.content.map(item => ({
+    // 调用API获取数据
+    const response = await getReviewsByStatus(targetStatus, currentPage.value - 1, pageSize.value);
+        tableData.value = response.content.map(item => ({
           id: item.id,
-          showName: item.performanceName,
-          username: item.username,
-          rating: item.rating,
           content: item.content,
+          rating: item.rating,
+          performanceName: item.performanceName || '未知剧目',
+          username: item.username || '匿名用户',
           createdAt: item.createdAt,
-          status: item.status || 0
-        }))
-        total.value = res.totalElements
-      } catch (error) {
-        ElMessage.error('数据加载失败')
-        console.error('API 请求错误:', error)
-      } finally {
-        loading.value = false
-      }
-    }
+          reviewStatus: item.reviewStatus
+    // 使用静态测试数据代替API调用
+    /*const testData = {
+      content: [
+        {
+          id: 19,
+          content: "test",
+          rating: 4,
+          userId: 11,
+          performanceId: 2,
+          createdAt: "2025-07-22T13:42:30.30847",
+          updatedAt: "2025-07-22T13:42:30.308502",
+          reviewStatus: 1
+        },
+        {
+      "id": 18,
+      "content": "test",
+      "rating": 5,
+      "userId": null,
+      "performanceId": 2,
+      "createdAt": "2025-07-22T13:41:00.116832",
+      "updatedAt": "2025-07-22T13:41:00.116928",
+      "reviewStatus": 1
+    },
+    {
+      "id": 17,
+      "content": "5",
+      "rating": 4,
+      "userId": null,
+      "performanceId": 1,
+      "createdAt": "2025-07-22T13:37:16.847169",
+      "updatedAt": "2025-07-22T13:37:16.847211",
+      "reviewStatus": 1
+    },
+    {
+      "id": 16,
+      "content": "5",
+      "rating": 5,
+      "userId": 11,
+      "performanceId": 1,
+      "createdAt": "2025-07-22T13:30:15.557556",
+      "updatedAt": "2025-07-22T13:30:15.557605",
+      "reviewStatus": 1
+    },
+    {
+      "id": 10,
+      "content": "excellent",
+      "rating": 5,
+      "userId": null,
+      "performanceId": 1,
+      "createdAt": "2025-07-19T16:24:26.572034",
+      "updatedAt": "2025-07-19T16:24:26.572034",
+      "reviewStatus": 1
+    },
+    {
+      "id": 9,
+      "content": "great",
+      "rating": 5,
+      "userId": null,
+      "performanceId": 2,
+      "createdAt": "2025-07-19T16:15:59.956511",
+      "updatedAt": "2025-07-19T16:15:59.956511",
+      "reviewStatus": 1
+    },
+    {
+      "id": 4,
+      "content": "1",
+      "rating": 4,
+      "userId": null,
+      "performanceId": 1,
+      "createdAt": "2025-07-19T13:33:37.253239",
+      "updatedAt": "2025-07-19T13:33:37.253239",
+      "reviewStatus": 1
+    },
+    {
+      "id": 3,
+      "content": "1",
+      "rating": 5,
+      "userId": null,
+      "performanceId": 1,
+      "createdAt": "2025-07-19T13:32:44.804494",
+      "updatedAt": "2025-07-19T13:32:44.804494",
+      "reviewStatus": 1
+    },
+    // 待审核的评价 (status=0)
+        { id: 20, content: "新评价", rating: 3, userId: 12, performanceId: 3, createdAt: "2025-07-23T10:00:00.000000", updatedAt: "2025-07-23T10:00:00.000000", reviewStatus: 0 },
 
-    // 创建评价
-    const createReview = async () => {
-      try {
-        await createReview(newReview.value)
-        ElMessage.success('评价创建成功')
-        fetchData()
-      } catch (error) {
-        ElMessage.error('创建失败')
-      }
+        // 违规的评价 (status=2)
+        { id: 21, content: "垃圾广告", rating: 1, userId: null, performanceId: 1, createdAt: "2025-07-22T14:00:00.000000", updatedAt: "2025-07-22T14:00:00.000000", reviewStatus: 2 }
+
+        // 其他测试数据项...
+      ],
+
+    };
+
+    // 获取当前Tab对应的状态值
+    const targetStatus = getStatusByTab(activeTab.value);
+
+    // 筛选出符合当前状态的数据
+    const filteredContent = testData.content.filter(
+      item => item.reviewStatus === targetStatus
+    );
+
+    // 转换数据结构
+    tableData.value = filteredContent.map(item => ({
+      id: item.id,
+      content: item.content,
+      rating: item.rating,
+      performanceName: `剧目ID: ${item.performanceId}`,
+      username: item.userId ? `用户${item.userId}` : '匿名用户',
+      createdAt: item.createdAt,
+      reviewStatus: item.reviewStatus*/
+    }));
+
+
+    total.value = review.totalElements;
+    } catch (error) {
+      console.error('数据加载错误:', error);
+      ElMessage.error('数据加载失败: ' + error.message);
+      tableData.value = [];
+      total.value = 0;
+   } finally {
+      loading.value = false;
     }
+  };
+
 
     // Tab状态转换
     const getStatusByTab = (tab) => {
@@ -195,6 +311,7 @@ export default {
 
     const handleSizeChange = (size) => {
       pageSize.value = size
+      currentPage.value = 1
       fetchData()
     }
 
@@ -204,25 +321,45 @@ export default {
     }
 
     // 操作处理
-    const approve = async (id) => {
-      try {
-        await updateReviewStatus(id, 1)
-        ElMessage.success('审核通过')
-        fetchData()
-      } catch (error) {
-        ElMessage.error('操作失败')
-      }
+const approve = async (id) => {
+  try {
+    await ElMessageBox.confirm('确定通过该评价吗？', '提示', {
+      type: 'warning',
+      confirmButtonText: '确定',
+      cancelButtonText: '取消'
+    });
+    // 调用API将评价状态更新为1(通过)
+    await updateReviewStatus(id, 1);
+    ElMessage.success('审核通过');
+    // 刷新数据
+    await fetchData();
+  } catch (error) {
+    // 只有当错误不是用户取消操作时才显示错误消息
+    if (error !== 'cancel') {
+      ElMessage.error('操作失败: ' + (error.response?.data?.message || error.message));
     }
+  }
+};
 
-    const reject = async (id) => {
-      try {
-        await updateReviewStatus(id, 2)
-        ElMessage.success('已标记为违规')
-        fetchData()
-      } catch (error) {
-        ElMessage.error('操作失败')
-      }
+const reject = async (id) => {
+  try {
+    await ElMessageBox.confirm('确定拒绝该评价吗？', '提示', {
+      type: 'warning',
+      confirmButtonText: '确定',
+      cancelButtonText: '取消'
+    });
+    // 调用API将评价状态更新为2(拒绝/违规)
+    await updateReviewStatus(id, 2);
+    ElMessage.success('已标记为违规');
+    // 刷新数据
+    await fetchData();
+  } catch (error) {
+    // 只有当错误不是用户取消操作时才显示错误消息
+    if (error !== 'cancel') {
+      ElMessage.error('操作失败: ' + (error.response?.data?.message || error.message));
     }
+  }
+};
 
     const handleDelete = async (id) => {
       try {
@@ -235,24 +372,29 @@ export default {
         ElMessage.success('删除成功')
         fetchData()
       } catch (error) {
-        // 用户取消操作
+        if (error !== 'cancel') {
+          ElMessage.error('删除失败: ' + (error.response?.data?.message || error.message))
+        }
       }
     }
 
     const openDetail = (row) => {
-      // 实现详情查看逻辑
-      console.log('查看评价详情:', row)
+      ElMessage.info(`查看评价详情: ${row.content}`)
     }
 
     // 辅助函数
     const formatDate = (dateStr) => {
-      return new Date(dateStr).toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
+      try {
+        return new Date(dateStr).toLocaleString('zh-CN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      } catch (e) {
+        return dateStr
+      }
     }
 
     // 生命周期
@@ -262,14 +404,12 @@ export default {
 
     return {
       activeTab,
-      keyword,
+      //keyword,
       currentPage,
       pageSize,
       total,
       loading,
       tableData,
-      newReview,
-      statusMap,
       handleTabChange,
       handleSearch,
       handleSizeChange,
@@ -279,55 +419,39 @@ export default {
       handleDelete,
       openDetail,
       formatDate,
-      createReview
     }
   }
 }
 </script>
 
 <style scoped>
-/* ===== 整体容器
 .review-manager {
   padding: 20px;
   background: #ffffff;
   border-radius: 4px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  margin-top: 80px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-
-} ===== */
-
-/* ===== 标题 ===== */
-.page-title {
-  font-size: 32px;
-  font-weight: bold;
-  color: #59310e;
-  text-align: center;
-  margin: 0;
-  position: absolute;
-  top: 15px;
-  left: 22%;
-  transform: translateX(-50%);
 }
 
-/* ===== 顶部功能区 ===== */
+.page-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #59310e;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
 .control-area {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0;
-  position: absolute;
-  top: 10%;
-  left: 40%;
-  transform: translateX(-50%);
-}
-
-/* 占位空白，宽度随意调 */
+  margin-bottom: 20px;
+  /* 占位空白，宽度随意调 */
 .divider {
   width: 60px;
   flex-shrink: 0;
+}
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .search-wrapper {
@@ -335,43 +459,40 @@ export default {
   align-items: center;
   gap: 10px;
 }
+
 .search-wrapper .el-input {
   width: 300px;
 }
 
-/* ===== 表格 & 分页 ===== */
 .table-wrapper {
-  margin-top: 0;
-  position: absolute;
-  top: 20%;
-  left: 53%;
-  transform: translateX(-50%);
-}
-.table-wrapper .el-table {
-  margin-bottom: 20px;
+  margin-top: 20px;
 }
 
 .pagination-wrapper {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
+  margin-top: 20px;
 }
 
-/* ===== 响应式：窄屏时纵向排列 ===== */
 @media (max-width: 768px) {
   .control-area {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
   }
+
   .search-wrapper {
     width: 100%;
     margin-top: 10px;
   }
+
   .search-wrapper .el-input {
     width: 100%;
   }
 }
 
+
 /* ===== 颜色调整 ===== */
+
 .el-tabs__item {
   color: #bfa074; /* 标签颜色 */
 }

@@ -45,7 +45,7 @@
         <span>评价管理</span>
       </el-menu-item>
 
-      <el-menu-item class="sidebar-item" @click="logout">
+      <el-menu-item class="sidebar-item" @click="logout" index="/login">
         <el-icon><SwitchButton /></el-icon>
         <span>退出登录</span>
       </el-menu-item>
