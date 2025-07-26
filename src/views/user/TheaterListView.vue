@@ -2,7 +2,6 @@
   <div class="all-theaters-view">
     <!-- 搜索栏区域 -->
     <div class="header">
-      <!-- 输入框，输入内容绑定到 inputQuery -->
       <input
         type="text"
         v-model="inputQuery"
@@ -13,18 +12,15 @@
       <!-- 搜索按钮，点击时触发搜索 -->
       <button class="search-btn" @click="onSearch">搜索</button>
     </div>
-    <!-- 剧院展示区域 -->
     <div class="theaters-gallery">
-      <!-- 有数据时展示剧院网格 -->
       <div v-if="filteredTheaters.length > 0" class="theaters-grid">
-        <!-- 遍历剧院数组，展示每个剧院 -->
         <div
           v-for="theater in filteredTheaters"
           :key="theater.id"
           class="theater-item"
           @click="goToDetail(theater.id)"
         >
-          <img :src="theater.image" alt="Theater image" class="theater-image" />
+          <img :src="theater.imageUrl" alt="Theater image" class="theater-image" />
           <p class="theater-name">{{ theater.name }}</p>
         </div>
       </div>
@@ -37,47 +33,39 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue'
+import { defineComponent, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import theaterApi from '@/api/theater'
+
+interface Theater {
+  id: number
+  name: string
+  locationName: string
+  latitude: number
+  longitude: number
+  imageUrl: string
+}
 
 export default defineComponent({
   setup() {
     const router = useRouter() // 路由实例，用于跳转页面
     const inputQuery = ref('') // 输入框内容
     const searchQuery = ref('') // 实际用于搜索的内容
-    // 剧院数据，后续可替换为后端接口获取
-    const theaters = ref([
-      {
-        id: 1,
-        name: '国家大剧院',
-        image: 'https://img1.doubanio.com/pview/drama_subject_poster/m/public/c18ea468e1fbf29.jpg',
-      },
-      {
-        id: 2,
-        name: '上海大剧院',
-        image: 'https://img1.doubanio.com/pview/drama_subject_poster/m/public/c18ea468e1fbf29.jpg',
-      },
-      {
-        id: 3,
-        name: '广州大剧院',
-        image: 'https://img1.doubanio.com/view/photo/l/public/p2575466399.webp',
-      },
-      {
-        id: 4,
-        name: '深圳保利剧院',
-        image: 'https://img1.doubanio.com/view/photo/l/public/p2575466400.webp',
-      },
-      {
-        id: 5,
-        name: '杭州大剧院',
-        image: 'https://img1.doubanio.com/view/photo/l/public/p2575466401.webp',
-      },
-      {
-        id: 6,
-        name: '天津大剧院',
-        image: 'https://img1.doubanio.com/view/photo/l/public/p2575466402.webp',
-      },
-    ])
+    const theaters = ref<Theater[]>([])
+    const errorMessage = ref('')
+    const loading = ref(true)
+
+    // 剧院数据，从后端接口获取
+    const fetchTheaters = async () => {
+      try {
+        theaters.value = await theaterApi.getAllTheaters()
+      } catch (e) {
+        console.error('获取剧院失败:', e)
+        errorMessage.value = '无法加载剧院数据，请稍后再试。'
+      } finally {
+        loading.value = false
+      }
+    }
 
     // 过滤剧院，返回名称包含搜索内容的剧院
     const filteredTheaters = computed(() => {
@@ -100,13 +88,14 @@ export default defineComponent({
     }
     //点击卡片后路由跳转到 /theaters/1 或 /theaters/2 等
     //目标页面需提前在 router/index.ts 中配置好动态路由 path: '/theaters/:id'
-
+    onMounted(fetchTheaters);
     return {
       inputQuery, // 输入框内容
       searchQuery, // 搜索内容
       filteredTheaters, // 过滤后的剧院列表
       onSearch, // 搜索方法
       goToDetail, // 跳转详情方法
+      fetchTheaters
     }
   },
 })

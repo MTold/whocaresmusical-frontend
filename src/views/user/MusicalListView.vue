@@ -1,14 +1,15 @@
 <template>
   <div class="all-shows-view">
     <div class="header">
-      <!-- 注释掉搜索和筛选部分 -->
-      <!--
       <input
         type="text"
-        v-model="searchQuery"
-        placeholder="搜索剧目"
+        v-model="inputQuery"
+        placeholder="搜索剧院"
         class="search-input"
+        @keyup.enter="onSearch"
       />
+      <button class="search-btn" @click="onSearch">搜索</button>
+      <!--
       <select v-model="selectedCategory" class="category-select">
         <option value="">所有类别</option>
         <option value="original">原创</option>
@@ -23,9 +24,9 @@
       </div>
 
       <!-- 显示音乐剧列表 -->
-      <div v-if="musicals.length > 0 && !loading" class="shows-grid">
+      <div v-if="filteredMusicals.length > 0 && !loading" class="shows-grid">
         <div
-          v-for="show in musicals"
+          v-for="show in filteredMusicals"
           :key="show.id"
           class="show-item"
           @click="goToDetail(show.id)"
@@ -35,7 +36,7 @@
         </div>
       </div>
 
-      <!-- 如果没有剧目，显示提示信息 -->
+      <!-- 显示提示信息 -->
       <div v-else-if="!loading">
         <p>没有符合条件的剧目。</p>
       </div>
@@ -44,7 +45,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue'
+import { defineComponent, ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router';
 import musicalApi from '@/api/musical';  // 引入API方法
 
@@ -54,6 +55,8 @@ export default defineComponent({
     const musicals = ref<any[]>([]);  // 存储音乐剧列表
     const errorMessage = ref(''); // 存储错误信息
     const loading = ref(true); // 控制加载状态
+    const inputQuery = ref('') // 输入框内容
+    const searchQuery = ref('') // 实际用于搜索的内容
 
     // 获取所有音乐剧数据
     const fetchMusicals = async () => {
@@ -67,6 +70,18 @@ export default defineComponent({
       }
     };
 
+    // 过滤剧院，返回名称包含搜索内容的剧院
+    const filteredMusicals = computed(() => {
+      return musicals.value.filter((musical) =>
+        musical.name.toLowerCase().includes(searchQuery.value.toLowerCase()),
+      )
+    })
+
+    // 搜索方法，将输入框内容赋值给实际搜索内容
+    const onSearch = () => {
+      searchQuery.value = inputQuery.value
+    }
+
     // 跳转到剧目详情页
     const goToDetail = (id: number) => {
       router.push(`/shows/${id}`);
@@ -78,10 +93,14 @@ export default defineComponent({
     });
 
     return {
+      inputQuery,
+      searchQuery,
+      filteredMusicals,
       musicals,
       goToDetail,
       errorMessage,
       loading, // 返回loading状态
+      onSearch
     };
   }
 });
@@ -105,6 +124,30 @@ export default defineComponent({
   max-width: 1200px;
   justify-content: center;
 }
+/* 搜索输入框样式 */
+.search-input {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  width: 1000px;
+  font-size: 20px;
+}
+
+/* 搜索按钮样式（浅咖啡色） */
+.search-btn {
+  padding: 10px 24px;
+  border-radius: 5px;
+  border: none;
+  background-color: #e4c9b0; /* 浅咖啡色 */
+  color: #5c4326;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.search-btn:hover {
+  background-color: #d1b295;
+}
+
 
 .shows-gallery {
   width: 100%;

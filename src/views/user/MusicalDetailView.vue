@@ -5,7 +5,7 @@
       <div class="show-info">
         <p class="show-name">{{ show.name }}</p>
         <p class="show-category">{{ show.category }}</p>
-        <p class="show-description">{{ show.description }}</p>
+        <p class="show-description" v-html="show.description"></p> <!-- 使用 v-html 使换行符生效 -->
         <div class="actions">
           <el-button
             type="danger"
@@ -16,7 +16,6 @@
             {{ isFavorite ? '已收藏' : '收藏剧目' }}
           </el-button>
         </div>
-        <p class="show-description" v-html="show.description"></p> <!-- 使用 v-html 使换行符生效 -->
       </div>
     </div>
 
