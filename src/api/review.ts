@@ -73,6 +73,7 @@ export const getReviewsByPerformance = async (
   const params = new URLSearchParams()
   params.append('page', page.toString())
   params.append('size', size.toString())
+  params.append('status', '1')
   if (rating) params.append('rating', rating.toString())
 
   // 确保 performanceId 是数字
