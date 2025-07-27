@@ -109,9 +109,9 @@ const routes = [
         component: () => import('@/views/admin/InfoManagerView.vue'),
       },
       {
-        path: 'shows',
-        name: 'ShowManager',
-        component: () => import('@/views/admin/ShowManagerView.vue'),
+        path: 'musicals',
+        name: 'MusicalManager',
+        component: () => import('@/views/admin/MusicalManagerView.vue'),
       },
       {
         path: 'theaters',

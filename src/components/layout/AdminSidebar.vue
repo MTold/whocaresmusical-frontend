@@ -30,7 +30,7 @@
          <span>资讯管理</span>
       </el-menu-item>
 
-      <el-menu-item class="sidebar-item" index="/admin/shows">
+      <el-menu-item class="sidebar-item" index="/admin/musicals">
         <el-icon><Film /></el-icon>
         <span>剧目信息管理</span>
       </el-menu-item>
