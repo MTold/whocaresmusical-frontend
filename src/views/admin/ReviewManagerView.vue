@@ -430,6 +430,10 @@ const reject = async (id) => {
   background: #ffffff;
   border-radius: 4px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  top: 15px;
+  left: 22%;
+  right: 20px;
 }
 
 .page-title {

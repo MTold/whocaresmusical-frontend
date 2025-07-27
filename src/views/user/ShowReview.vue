@@ -67,7 +67,7 @@
           <div class="review-content">{{ review.content }}</div>
 
           <!-- 评价操作（暂时显示给所有人，因为没有登录） -->
-          <div class="review-actions">
+          <div class="review-actions" v-if="isCurrentUser(review.username)">
             <button @click="editReview(review)" class="action-btn edit">编辑</button>
             <button @click="deleteReviewInternal(review.id)" class="action-btn delete">删除</button>
           </div>
@@ -132,12 +132,46 @@
         <button @click="clearReview" class="clear-btn">清空</button>
       </div>
     </div>
+
+    <!-- 编辑评价弹框 -->
+    <el-dialog
+      v-model="editDialogVisible"
+      title="编辑评价"
+      width="500px"
+      :before-close="handleCloseEditDialog"
+    >
+      <el-form :model="editForm" :rules="editRules" ref="editFormRef" label-width="80px">
+        <el-form-item label="评分" prop="rating">
+          <star-rating v-model="editForm.rating"></star-rating>
+          <span class="rating-display">{{ editForm.rating }}</span>
+        </el-form-item>
+        <el-form-item label="评价内容" prop="content">
+          <el-input
+            v-model="editForm.content"
+            type="textarea"
+            :rows="4"
+            maxlength="1000"
+            show-word-limit
+            placeholder="请分享您对这部剧目的看法..."
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="handleCloseEditDialog">取消</el-button>
+          <el-button type="primary" @click="submitEdit" :loading="editLoading">
+            确认修改
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { ElMessage } from 'element-plus';
 import StarRating from '@/components/common/StarRating.vue';
 import {
   getReviewsByPerformance,
@@ -175,9 +209,34 @@ const reviewStatistics = ref<ReviewStatistics>({
 });
 
 const newReview = reactive({
+  id: 0,
   content: '',
   rating: 0,
 });
+
+// 编辑弹框相关状态
+const editDialogVisible = ref(false);
+const editLoading = ref(false);
+const editForm = reactive({
+  id: 0,
+  musicalId: 0,
+  status: 0,
+  content: '',
+  rating: 0,
+});
+const editFormRef = ref();
+
+// 编辑表单验证规则
+const editRules = {
+  rating: [
+    { required: true, message: '请选择评分', trigger: 'change' },
+    { type: 'number', min: 1, max: 5, message: '评分必须在1-5之间', trigger: 'change' }
+  ],
+  content: [
+    { required: true, message: '请输入评价内容', trigger: 'blur' },
+    { min: 1, max: 1000, message: '评价内容长度必须在1-1000字符之间', trigger: 'blur' }
+  ]
+};
 
 // 分页相关
 const currentPage = ref(0);
@@ -229,9 +288,8 @@ const formatDate = (dateString: string) => {
   });
 };
 
-// 不再需要用户身份检查（因为不需要登录）
-const isCurrentUser = (userId: number) => {
-  return true; // 允许所有人操作
+const isCurrentUser = (username: string) => {
+  return localStorage.getItem('username') === username; // 只允许创建人操作
 };
 
 const getRatingPercentage = (rating: number) => {
@@ -344,16 +402,61 @@ const submitReview = async () => {
     // 可选：刷新全部列表（但主要使用上方手动添加）
     // await loadReviews();
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('提交评价失败:', error);
-    alert('评价提交失败: ' + (error.response?.data?.message || error.message || '未知错误'));
+    const errorMessage = error.response?.data?.message || error.message || '未知错误';
+    ElMessage.error('评价提交失败: ' + errorMessage);
   }
 };
 
 const editReview = async (review: any) => {
   console.log('编辑评价:', review);
-  newReview.content = review.content;
-  newReview.rating = review.rating;
+  // 填充编辑表单数据
+  editForm.id = review.id;
+  editForm.musicalId = review.musicalId;
+  editForm.content = review.content;
+  editForm.rating = review.rating;
+  // 打开编辑弹框
+  editDialogVisible.value = true;
+};
+
+const submitEdit = async () => {
+  if (!editFormRef.value) return;
+
+  try {
+    await editFormRef.value.validate();
+    editLoading.value = true;
+
+    await updateReview(editForm.id, {
+      musicalId: editForm.musicalId,
+      content: editForm.content,
+      rating: editForm.rating
+    });
+
+    ElMessage.success('评价更新成功');
+    editDialogVisible.value = false;
+
+    // 刷新评价列表和统计数据
+    await Promise.all([
+      loadReviews(),
+      loadReviewStats()
+    ]);
+  } catch (error: any) {
+    console.error('更新评价失败:', error);
+    const errorMessage = error.response?.data?.message || error.message || '未知错误';
+    ElMessage.error('更新评价失败: ' + errorMessage);
+  } finally {
+    editLoading.value = false;
+  }
+};
+
+const handleCloseEditDialog = () => {
+  editFormRef.value?.resetFields();
+  editDialogVisible.value = false;
+  // 清空编辑表单数据
+  editForm.id = 0;
+  editForm.content = '';
+  editForm.rating = 0;
 };
 
 const deleteReviewInternal = async (reviewId: number) => {
@@ -363,10 +466,11 @@ const deleteReviewInternal = async (reviewId: number) => {
     const { deleteReview: deleteApi } = await import('@/api/review');
     await deleteApi(reviewId);
     await loadReviews();
-    alert('评价删除成功');
-  } catch (error) {
+    ElMessage.success('评价删除成功');
+  } catch (error: any) {
     console.error('删除评价失败:', error);
-    alert('删除评价失败: ' + (error.response?.data?.message || error.message || '未知错误'));
+    const errorMessage = error.response?.data?.message || error.message || '未知错误';
+    ElMessage.error('删除评价失败: ' + errorMessage);
   }
 };
 
@@ -768,5 +872,18 @@ textarea {
 .edit-btn:hover {
   background: #28a745;
   color: white;
+}
+
+/* 编辑弹框样式 */
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.el-dialog .rating-display {
+  margin-left: 8px;
+  font-weight: bold;
+  color: #bf5f08;
 }
 </style>
