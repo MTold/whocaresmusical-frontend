@@ -11,10 +11,11 @@
         <el-tab-pane label="待审核" name="pending" />
         <el-tab-pane label="违规信息" name="violation" />
       </el-tabs>
-      <!-- 占位空白，宽度就是你想留的距离 -->
+
+      <!-- 占位空白 -->
       <span class="divider"></span>
 
-<!-- 搜索框 -->
+      <!-- 搜索框 -->
       <div class="search-wrapper">
         <el-input
           v-model="keyword"
@@ -118,8 +119,9 @@
   </div>
 </template>
 
-<script>
-import { ref, onMounted } from 'vue'
+
+<script >
+import { ref, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import StarRating from '@/components/common/StarRating.vue'
 import review, {
@@ -143,6 +145,28 @@ export default {
     const tableData = ref([])
     //给定数据
     // const tableData = ref([{"content":[{"id":19,"content":"test","rating":4,"userId":11,"performanceId":2,"createdAt":"2025-07-22T13:42:30.30847","updatedAt":"2025-07-22T13:42:30.308502","reviewStatus":1},{"id":18,"content":"test","rating":5,"userId":null,"performanceId":2,"createdAt":"2025-07-22T13:41:00.116832","updatedAt":"2025-07-22T13:41:00.116928","reviewStatus":1},{"id":17,"content":"5","rating":4,"userId":null,"performanceId":1,"createdAt":"2025-07-22T13:37:16.847169","updatedAt":"2025-07-22T13:37:16.847211","reviewStatus":1},{"id":16,"content":"5","rating":5,"userId":11,"performanceId":1,"createdAt":"2025-07-22T13:30:15.557556","updatedAt":"2025-07-22T13:30:15.557605","reviewStatus":1},{"id":10,"content":"excellent","rating":5,"userId":null,"performanceId":1,"createdAt":"2025-07-19T16:24:26.572034","updatedAt":"2025-07-19T16:24:26.572034","reviewStatus":1},{"id":9,"content":"great","rating":5,"userId":null,"performanceId":2,"createdAt":"2025-07-19T16:15:59.956511","updatedAt":"2025-07-19T16:15:59.956511","reviewStatus":1},{"id":4,"content":"1","rating":4,"userId":null,"performanceId":1,"createdAt":"2025-07-19T13:33:37.253239","updatedAt":"2025-07-19T13:33:37.253239","reviewStatus":1},{"id":3,"content":"1","rating":5,"userId":null,"performanceId":1,"createdAt":"2025-07-19T13:32:44.804494","updatedAt":"2025-07-19T13:32:44.804494","reviewStatus":1}],"pageable":{"pageNumber":0,"pageSize":10,"sort":{"empty":false,"sorted":true,"unsorted":false},"offset":0,"paged":true,"unpaged":false},"last":true,"totalElements":8,"totalPages":1,"size":10,"number":0,"sort":{"empty":false,"sorted":true,"unsorted":false},"first":true,"numberOfElements":8,"empty":false}])
+
+  // 动态列
+const columns = computed(() => {
+  const base = [
+    { prop: 'id', label: '编号', width: 80, fixed: true },
+    { prop: 'content', label: '评价内容', width: 400 },
+    { prop: 'rating', label: '评分', width: 170, slot: 'rating' },
+    { prop: 'performanceName', label: '剧目', width: 180 },
+    { prop: 'username', label: '用户', width: 120 },
+    { prop: 'createdAt', label: '时间', width: 160, slot: 'time' }
+  ]
+  if (activeTab.value === 'pending') {
+    base.push({
+      label: '操作',
+      width: 220,
+      fixed: 'right',
+      align: 'center',
+      slot: 'action'
+    })
+  }
+  return base
+})
 
 
     // 获取评价数据
@@ -382,6 +406,13 @@ const reject = async (id) => {
   .search-wrapper .el-input {
     width: 100%;
   }
+}
+
+/* 隐藏滚动空白列 */
+:deep(.el-table th.gutter),
+:deep(.el-table colgroup col[name='gutter']) {
+  display: none;
+  width: 0;
 }
 
 
