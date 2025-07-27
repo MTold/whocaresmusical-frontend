@@ -7,7 +7,7 @@
     <div class="control-area">
       <!-- 添加消息按钮 -->
       <el-button type="primary" @click="handleAddMessage">添加消息</el-button>
-      
+
       <!-- 占位空白 -->
       <span class="divider"></span>
 
@@ -219,7 +219,7 @@ const fetchData = async () => {
   loading.value = true
   try {
     const allMessages = await messageApi.getAllMessages()
-    
+
     // 根据关键字筛选
     let filteredMessages = allMessages
     if (keyword.value) {
@@ -227,7 +227,7 @@ const fetchData = async () => {
         msg => msg.title.includes(keyword.value) || msg.content.includes(keyword.value)
       )
     }
-    
+
     // 分页处理
     total.value = filteredMessages.length
     const startIndex = (currentPage.value - 1) * pageSize.value
@@ -265,7 +265,7 @@ const handleAddMessage = () => {
   editForm.title = ''
   editForm.content = ''
   editDialogVisible.value = true
-  
+
   // 等待DOM更新后聚焦
   nextTick(() => {
     editFormRef.value?.clearValidate()
@@ -278,7 +278,7 @@ const handleEdit = (message: Message) => {
   editForm.title = message.title
   editForm.content = message.content
   editDialogVisible.value = true
-  
+
   // 等待DOM更新后聚焦
   nextTick(() => {
     editFormRef.value?.clearValidate()
@@ -309,10 +309,10 @@ const handleView = (message: Message) => {
 
 const saveMessage = async () => {
   if (!editFormRef.value) return
-  
+
   await editFormRef.value.validate(async (valid) => {
     if (!valid) return
-    
+
     try {
       if (isEditing.value) {
         // 编辑消息
@@ -329,7 +329,7 @@ const saveMessage = async () => {
         })
         ElMessage.success('消息添加成功')
       }
-      
+
       editDialogVisible.value = false
       fetchData()
     } catch (error) {
@@ -366,8 +366,8 @@ onMounted(() => {
   border-radius: 4px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 15px;
-  left: 22%;
+  top: 60px;
+  left: 16%;
   right: 20px;
 }
 

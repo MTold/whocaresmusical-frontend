@@ -45,12 +45,12 @@
         <el-table-column
           prop="content"
           label="评价内容"
-          width="300"
+          width="400"
         />
         <el-table-column
           prop="rating"
           label="评分"
-          width="100"
+          width="170"
         >
           <template #default="{ row }">
             <star-rating :model-value="row.rating" :readonly="true" :star-size="20" />
@@ -321,8 +321,8 @@ const reject = async (id) => {
   border-radius: 4px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   position: absolute;
-  top: 15px;
-  left: 22%;
+  top: 60px;
+  left: 16%;
   right: 20px;
 }
 
