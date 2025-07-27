@@ -59,7 +59,7 @@ import { recordBrowsing } from '@/api/history'
 import axios from 'axios'
 const route = useRoute()
 const router = useRouter()
-const showId = Number(route.params.id)
+let showId = Number(route.params.id)
 
 // 定义 show 数据对象，包含排期字段
 const show = ref({
