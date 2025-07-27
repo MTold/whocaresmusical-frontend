@@ -118,7 +118,11 @@ const routes = [
         name: 'TheaterManager',
         component: () => import('@/views/admin/TheaterManagerView.vue'),
       },
-      /* 其余管理子页面继续往这里加 */
+      {
+        path: 'messages',
+        name: 'MessageManager',
+        component: () => import('@/views/admin/MessageManagerView.vue'),
+      },
     ],
   },
 ]
@@ -131,6 +135,13 @@ const router = createRouter({
 /* -------- 简易路由守卫 -------- */
 router.beforeEach((to, _, next) => {
   const isAdmin = localStorage.getItem('isAdmin') === 'true'
+  const isLoggedIn = !!localStorage.getItem('token')
+  
+  // 检查是否访问个人中心页面
+  if (to.path.startsWith('/profile') && !isLoggedIn) {
+    return next('/login')
+  }
+  
   if (to.path.startsWith('/admin') && !isAdmin) return next('/login')
   next()
 })

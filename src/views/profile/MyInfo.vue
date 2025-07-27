@@ -3,7 +3,7 @@
     <form @submit.prevent="saveInfo" class="info-form">
       <div class="info-item">
         <span class="label">用户名</span>
-        <input v-model="form.username" class="input" />
+        <input v-model="form.username" class="input" disabled />
       </div>
       <div class="info-item">
         <span class="label">性别</span>
@@ -16,7 +16,7 @@
       </div>
       <div class="info-item">
         <span class="label">出生年月</span>
-        <input type="date" v-model="form.birth" class="input" />
+        <input type="date" v-model="form.birthday" class="input" />
       </div>
       <div class="info-item">
         <span class="label">电话</span>
@@ -28,7 +28,7 @@
       </div>
       <div class="info-item">
         <span class="label">密码</span>
-        <input type="password" v-model="form.password" class="input" />
+        <input type="password" v-model="form.password" class="input" placeholder="不修改请留空" />
       </div>
       <div class="btn-row">
         <button type="submit" class="save-btn">保存</button>
@@ -41,38 +41,82 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { userApi } from '@/api/user'
+import { authApi } from '@/api/auth'
+import type { User } from '@/types/user'
+
 const router = useRouter()
 
 const form = ref({
+  userId: 0,
   username: '',
   gender: '',
-  birth: '',
+  birthday: '',
   phone: '',
   email: '',
-  password: ''
+  password: '',
+  userImage: ''
 })
 
-onMounted(() => {
-  form.value.username = localStorage.getItem('username') || ''
-  form.value.gender = localStorage.getItem('gender') || ''
-  form.value.birth = localStorage.getItem('birth') || ''
-  form.value.phone = localStorage.getItem('phone') || ''
-  form.value.email = localStorage.getItem('email') || ''
-  form.value.password = localStorage.getItem('password') || ''
+// 检查用户是否已登录
+onMounted(async () => {
+  if (!authApi.isLoggedIn()) {
+    router.replace('/login')
+    return
+  }
+  
+  // 从后端获取用户信息
+  try {
+    const userData = await userApi.getCurrentUser()
+    form.value.userId = userData.userId
+    form.value.username = userData.username
+    form.value.gender = userData.gender || ''
+    form.value.birthday = userData.birthday || ''
+    form.value.phone = userData.phone || ''
+    form.value.email = userData.email || ''
+    form.value.userImage = userData.userImage || ''
+  } catch (error) {
+    console.error('获取用户信息失败:', error)
+    alert('获取用户信息失败')
+  }
 })
 
-function saveInfo() {
-  localStorage.setItem('username', form.value.username)
-  localStorage.setItem('gender', form.value.gender)
-  localStorage.setItem('birth', form.value.birth)
-  localStorage.setItem('phone', form.value.phone)
-  localStorage.setItem('email', form.value.email)
-  localStorage.setItem('password', form.value.password)
-  alert('保存成功！')
+async function saveInfo() {
+  try {
+    // 准备要更新的数据
+    const updateData: Partial<User> = {
+      gender: form.value.gender || null,
+      birthday: form.value.birthday || null,
+      phone: form.value.phone || null,
+      email: form.value.email || null
+    }
+    
+    // 如果密码不为空，则更新密码
+    if (form.value.password) {
+      updateData.password = form.value.password
+    }
+    
+    // 调用API更新用户信息
+    const updatedUser = await userApi.updateCurrentUser(updateData)
+    
+    // 更新成功后更新表单数据
+    form.value.gender = updatedUser.gender || ''
+    form.value.birthday = updatedUser.birthday || ''
+    form.value.phone = updatedUser.phone || ''
+    form.value.email = updatedUser.email || ''
+    
+    // 清空密码字段
+    form.value.password = ''
+    
+    alert('保存成功！')
+  } catch (error) {
+    console.error('保存失败:', error)
+    alert('保存失败，请重试')
+  }
 }
 
 function logout() {
-  localStorage.clear()
+  authApi.logout()
   router.replace('/login')
 }
 </script>
