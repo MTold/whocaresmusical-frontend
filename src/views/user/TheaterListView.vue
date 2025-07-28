@@ -83,19 +83,19 @@ export default defineComponent({
 
     // 跳转到剧院详情页
     const goToDetail = (id: number) => {
-      router.push({ name: 'TheaterDetail', params: { id } })
-      // 或 router.push(`/theaters/${id}`)
+      router.push(`/theaters/${id}`)
+      //或router.push({ name: 'TheaterDetail', params: { id } })
     }
     //点击卡片后路由跳转到 /theaters/1 或 /theaters/2 等
     //目标页面需提前在 router/index.ts 中配置好动态路由 path: '/theaters/:id'
-    onMounted(fetchTheaters);
+    onMounted(fetchTheaters)
     return {
       inputQuery, // 输入框内容
       searchQuery, // 搜索内容
       filteredTheaters, // 过滤后的剧院列表
       onSearch, // 搜索方法
       goToDetail, // 跳转详情方法
-      fetchTheaters
+      fetchTheaters,
     }
   },
 })
