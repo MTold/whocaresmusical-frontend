@@ -182,7 +182,7 @@ const columns = computed(() => {
           id: item.id,
           content: item.content,
           rating: item.rating,
-          performanceName: item.performanceName || '未知剧目',
+          performanceName: item.musicalName || '未知剧目',
           username: item.username || '匿名用户',
           createdAt: item.createdAt,
           reviewStatus: item.reviewStatus

@@ -394,13 +394,13 @@ const submitReview = async () => {
       userImage: response.userImage || null
     };
 
-    reviews.value.unshift(newReviewItem);
+    //reviews.value.unshift(newReviewItem);
 
     // 更新统计数据
     await loadReviewStats();
 
     // 可选：刷新全部列表（但主要使用上方手动添加）
-    // await loadReviews();
+    await loadReviews();
 
   } catch (error: any) {
     console.error('提交评价失败:', error);
