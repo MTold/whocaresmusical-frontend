@@ -1,12 +1,12 @@
 <template>
-  <div class="news-manager">
+  <div class="message-manager">
     <!-- 标题 -->
-    <h1 class="page-title">资讯管理</h1>
+    <h1 class="page-title">消息管理</h1>
 
     <!-- 顶部功能区 -->
     <div class="control-area">
-      <!-- 添加资讯按钮 -->
-      <el-button type="primary" @click="handleAddNews">添加资讯</el-button>
+      <!-- 添加消息按钮 -->
+      <el-button type="primary" @click="handleAddMessage">添加消息</el-button>
 
       <!-- 占位空白 -->
       <span class="divider"></span>
@@ -15,12 +15,12 @@
       <div class="search-wrapper">
         <el-input
           v-model="keyword"
-          placeholder="请输入关键词"
+          placeholder="请输入消息标题"
           clearable
           @keyup.enter="handleSearch"
           @clear="handleSearch"
         />
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
+        <el-button type="primary" @click="handleSearch" link>搜索</el-button>
       </div>
     </div>
 
@@ -35,31 +35,40 @@
       >
         <el-table-column
           fixed
-          prop="id"
+          prop="messageId"
           label="编号"
           width="80"
         />
         <el-table-column
           prop="title"
           label="标题"
+          width="200"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="content"
+          label="内容"
           width="300"
           show-overflow-tooltip
         />
         <el-table-column
-          prop="date"
-          label="发布日期"
+          prop="createdAt"
+          label="创建时间"
           width="180"
         >
           <template #default="{ row }">
-            {{ formatDate(row.date) }}
+            {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
         <el-table-column
-          prop="summary"
-          label="内容"
-          width="400"
-          show-overflow-tooltip
-        />
+          prop="updatedAt"
+          label="更新时间"
+          width="180"
+        >
+          <template #default="{ row }">
+            {{ formatDate(row.updatedAt) }}
+          </template>
+        </el-table-column>
         <el-table-column
           fixed="right"
           label="操作"
@@ -68,7 +77,7 @@
         >
           <template #default="{ row }">
             <el-button size="small" type="primary" link @click="handleEdit(row)">编辑</el-button>
-            <el-button size="small" type="danger" link @click="handleDelete(row.id)">删除</el-button>
+            <el-button size="small" type="danger" link @click="handleDelete(row.messageId)">删除</el-button>
             <el-button size="small" type="success" link @click="handleView(row)">查看</el-button>
           </template>
         </el-table-column>
@@ -88,25 +97,29 @@
       </div>
     </div>
 
-    <!-- 资讯详情对话框 -->
+    <!-- 消息详情对话框 -->
     <el-dialog
       v-model="detailDialogVisible"
-      :title="currentNews.title || '资讯详情'"
+      :title="currentMessage.title || '消息详情'"
       width="600px"
       destroy-on-close
     >
-      <div class="news-detail">
+      <div class="message-detail">
         <div class="detail-item">
           <span class="label">标题：</span>
-          <span class="value">{{ currentNews.title }}</span>
+          <span class="value">{{ currentMessage.title }}</span>
         </div>
         <div class="detail-item">
-          <span class="label">发布日期：</span>
-          <span class="value">{{ formatDate(currentNews.date) }}</span>
+          <span class="label">创建时间：</span>
+          <span class="value">{{ formatDate(currentMessage.createdAt) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">更新时间：</span>
+          <span class="value">{{ formatDate(currentMessage.updatedAt) }}</span>
         </div>
         <div class="detail-item content">
           <span class="label">内容：</span>
-          <div class="value" v-html="currentNews.summary"></div>
+          <div class="value" v-html="currentMessage.content"></div>
         </div>
       </div>
       <template #footer>
@@ -116,10 +129,10 @@
       </template>
     </el-dialog>
 
-    <!-- 添加/编辑资讯对话框 -->
+    <!-- 添加/编辑消息对话框 -->
     <el-dialog
       v-model="editDialogVisible"
-      :title="isEditing ? '编辑资讯' : '添加资讯'"
+      :title="isEditing ? '编辑消息' : '添加消息'"
       width="600px"
       destroy-on-close
     >
@@ -130,28 +143,21 @@
         label-width="80px"
       >
         <el-form-item label="标题" prop="title">
-          <el-input v-model="editForm.title" placeholder="请输入资讯标题" />
+          <el-input v-model="editForm.title" placeholder="请输入消息标题" />
         </el-form-item>
-        <el-form-item label="发布日期" prop="date">
-          <el-date-picker
-            v-model="editForm.date"
-            type="date"
-            placeholder="选择日期"
-          />
-        </el-form-item>
-        <el-form-item label="内容" prop="summary">
+        <el-form-item label="内容" prop="content">
           <el-input
-            v-model="editForm.summary"
+            v-model="editForm.content"
             type="textarea"
             :rows="6"
-            placeholder="请输入资讯内容"
+            placeholder="请输入消息内容"
           />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="editDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="saveNews">保存</el-button>
+          <el-button type="primary" @click="saveMessage">保存</el-button>
         </span>
       </template>
     </el-dialog>
@@ -161,8 +167,8 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, nextTick } from 'vue'
 import { ElMessage, ElMessageBox, ElForm } from 'element-plus'
-import { newsApi } from '@/api/admin/news'
-import type { News } from '@/types/news'
+import { messageApi } from '@/api/message'
+import type { Message } from '@/types/message'
 
 // 状态管理
 const keyword = ref('')
@@ -170,27 +176,27 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const loading = ref(false)
-const tableData = ref<News[]>([])
+const tableData = ref<Message[]>([])
 
 // 对话框状态
 const detailDialogVisible = ref(false)
 const editDialogVisible = ref(false)
 const isEditing = ref(false)
 
-// 当前资讯
-const currentNews = ref<News>({
-  id: 0,
+// 当前消息
+const currentMessage = ref<Message>({
+  messageId: 0,
   title: '',
-  date: '',
-  summary: ''
+  content: '',
+  createdAt: '',
+  updatedAt: ''
 })
 
 // 编辑表单
 const editForm = reactive({
-  id: 0,
+  messageId: 0,
   title: '',
-  date: '',
-  summary: ''
+  content: ''
 })
 
 // 编辑表单引用
@@ -199,33 +205,33 @@ const editFormRef = ref<InstanceType<typeof ElForm>>()
 // 编辑表单验证规则
 const editRules = {
   title: [
-    { required: true, message: '请输入资讯标题', trigger: 'blur' },
+    { required: true, message: '请输入消息标题', trigger: 'blur' },
     { min: 1, max: 100, message: '标题长度不能超过100个字符', trigger: 'blur' }
   ],
-  summary: [
-    { required: true, message: '请输入资讯内容', trigger: 'blur' },
+  content: [
+    { required: true, message: '请输入消息内容', trigger: 'blur' },
     { min: 1, max: 1000, message: '内容长度不能超过1000个字符', trigger: 'blur' }
   ]
 }
 
-// 获取资讯数据
+// 获取消息数据
 const fetchData = async () => {
   loading.value = true
   try {
-    const allNews = await newsApi.getAllNews()
+    const allMessages = await messageApi.getAllMessages()
 
     // 根据关键字筛选
-    let filteredNews = allNews
+    let filteredMessages = allMessages
     if (keyword.value) {
-      filteredNews = allNews.filter(
-        news => news.title.includes(keyword.value) || news.summary.includes(keyword.value)
+      filteredMessages = allMessages.filter(
+        msg => msg.title.includes(keyword.value) || msg.content.includes(keyword.value)
       )
     }
 
     // 分页处理
-    total.value = filteredNews.length
+    total.value = filteredMessages.length
     const startIndex = (currentPage.value - 1) * pageSize.value
-    tableData.value = filteredNews.slice(startIndex, startIndex + pageSize.value)
+    tableData.value = filteredMessages.slice(startIndex, startIndex + pageSize.value)
   } catch (error) {
     console.error('数据加载错误:', error)
     ElMessage.error('数据加载失败: ' + (error as Error).message)
@@ -253,12 +259,11 @@ const handlePageChange = (page: number) => {
   fetchData()
 }
 
-const handleAddNews = () => {
+const handleAddMessage = () => {
   isEditing.value = false
-  editForm.id = 0
+  editForm.messageId = 0
   editForm.title = ''
-  editForm.date = ''
-  editForm.summary = ''
+  editForm.content = ''
   editDialogVisible.value = true
 
   // 等待DOM更新后聚焦
@@ -267,12 +272,11 @@ const handleAddNews = () => {
   })
 }
 
-const handleEdit = (news: News) => {
+const handleEdit = (message: Message) => {
   isEditing.value = true
-  editForm.id = news.id
-  editForm.title = news.title
-  editForm.date = news.date
-  editForm.summary = news.summary
+  editForm.messageId = message.messageId
+  editForm.title = message.title
+  editForm.content = message.content
   editDialogVisible.value = true
 
   // 等待DOM更新后聚焦
@@ -283,12 +287,12 @@ const handleEdit = (news: News) => {
 
 const handleDelete = async (id: number) => {
   try {
-    await ElMessageBox.confirm('确定删除该资讯吗？', '警告', {
+    await ElMessageBox.confirm('确定删除该消息吗？', '警告', {
       type: 'warning',
       confirmButtonText: '确定',
       cancelButtonText: '取消'
     })
-    await newsApi.deleteNews(id)
+    await messageApi.deleteMessage(id)
     ElMessage.success('删除成功')
     fetchData()
   } catch (error) {
@@ -298,12 +302,12 @@ const handleDelete = async (id: number) => {
   }
 }
 
-const handleView = (news: News) => {
-  currentNews.value = { ...news }
+const handleView = (message: Message) => {
+  currentMessage.value = { ...message }
   detailDialogVisible.value = true
 }
 
-const saveNews = async () => {
+const saveMessage = async () => {
   if (!editFormRef.value) return
 
   await editFormRef.value.validate(async (valid) => {
@@ -311,21 +315,19 @@ const saveNews = async () => {
 
     try {
       if (isEditing.value) {
-        // 编辑资讯
-        await newsApi.updateNews(editForm.id, {
+        // 编辑消息
+        await messageApi.updateMessage(editForm.messageId, {
           title: editForm.title,
-          date: editForm.date,
-          summary: editForm.summary
+          content: editForm.content
         })
-        ElMessage.success('资讯更新成功')
+        ElMessage.success('消息更新成功')
       } else {
-        // 添加资讯
-        await newsApi.createNews({
+        // 添加消息
+        await messageApi.createMessage({
           title: editForm.title,
-          date: editForm.date,
-          summary: editForm.summary
+          content: editForm.content
         })
-        ElMessage.success('资讯添加成功')
+        ElMessage.success('消息添加成功')
       }
 
       editDialogVisible.value = false
@@ -358,7 +360,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.news-manager {
+.message-manager {
   padding: 20px;
   background: #ffffff;
   border-radius: 4px;
@@ -411,7 +413,7 @@ onMounted(() => {
   margin-top: 20px;
 }
 
-.news-detail {
+.message-detail {
   padding: 20px;
 }
 

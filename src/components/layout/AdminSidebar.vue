@@ -1,5 +1,5 @@
 <template>
-  <el-aside width="200px" style="background:#F2E1AE; min-height:100vh;">
+  <el-aside width="200px" style="position:fixed; background:#F2E1AE; min-height:100vh;">
     <!-- 顶部 Logo -->
     <div class="logo-box">
       <img src="@/assets/logo.png" alt="Logo" />
@@ -45,6 +45,11 @@
         <span>评价管理</span>
       </el-menu-item>
 
+      <el-menu-item class="sidebar-item" index="/admin/messages">
+        <el-icon><Message /></el-icon>
+        <span>消息管理</span>
+      </el-menu-item>
+
       <el-menu-item class="sidebar-item" @click="logout" index="/login">
         <el-icon><SwitchButton /></el-icon>
         <span>退出登录</span>
@@ -55,7 +60,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { Monitor, User, ChatLineRound, SwitchButton, Document, Film, OfficeBuilding } from '@element-plus/icons-vue'
+import { Monitor, User, ChatLineRound, SwitchButton, Document, Film, OfficeBuilding, Message } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const logout = () => {
