@@ -3,7 +3,7 @@
     <!-- 左侧：剧院图片和名称 -->
     <div class="left-panel">
       <div class="theater-img-wrapper">
-        <img :src="theater.image" alt="剧院图片" class="theater-img" v-if="theater.image" />
+        <img :src="theater.imageUrl" alt="剧院图片" class="theater-img" v-if="theater.imageUrl" />
       </div>
       <div class="theater-name">{{ theater.name }}</div>
     </div>
@@ -14,15 +14,15 @@
       <div class="divider"></div>
       <div class="sidebar">
         <div
-          v-for="(type, idx) in shopTypes"
+          v-for="(type, idx) in shopCategorys"
           :key="type.value"
           :class="[
             'sidebar-item',
-            { active: selectedType === type.value },
+            { active: selectedCategory === type.value },
             idx === 0 ? 'first' : '',
-            idx === shopTypes.length - 1 ? 'last' : '',
+            idx === shopCategorys.length - 1 ? 'last' : '',
           ]"
-          @click="selectedType = type.value"
+          @click="selectedCategory = type.value"
         >
           <span class="vertical-text">{{ type.label }}</span>
         </div>
@@ -30,7 +30,7 @@
       <div class="shop-list">
         <div
           v-for="shop in filteredShops"
-          :key="shop.id"
+          :key="shop.shopId"
           class="shop-card"
           @click="selectShop(shop)"
         >
@@ -46,8 +46,12 @@
       <div v-if="selectedShop">
         <div class="shop-title">{{ selectedShop.name }} 的用户评价</div>
         <div class="review-list">
-          <div v-if="reviews[selectedShop.id]?.length">
-            <div v-for="(review, idx) in reviews[selectedShop.id]" :key="idx" class="review-item">
+          <div v-if="reviews[selectedShop.shopId]?.length">
+            <div
+              v-for="(review, idx) in reviews[selectedShop.shopId]"
+              :key="idx"
+              class="review-item"
+            >
               {{ review }}
             </div>
           </div>
@@ -71,74 +75,103 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { getTheaterById } from '@/api/theater'
+import { getShopsByTheaterId } from '@/api/shop'
+//import axios from 'axios'
 
 const route = useRoute()
-const id = route.params.id // 当前剧院id
+const theaterId = Number(route.params.id) // 当前剧院id，确保为数字类型
+const errorMessage = ref('')
+const loading = ref(true)
 
-// 模拟剧院信息，实际可通过API获取
+/* type Shop = {
+  shopId: number
+  name: string
+  location: string
+  category: number // 1: 美食, 2: 住宿, 3: 游玩
+  image: string
+} */
+// 定义剧院对象
 const theater = ref({
-  id,
-  name: '国家大剧院',
-  image: 'https://img1.doubanio.com/pview/drama_subject_poster/m/public/c18ea468e1fbf29.jpg',
+  id: theaterId,
+  name: '',
+  locationName: '',
+  latitude: 0,
+  longitude: 0,
+  imageUrl: '',
+  //shops: [] as Shop[],
 })
+// 剧院信息，从后端接口获取
+const theaterInformation = async () => {
+  try {
+    const data = await getTheaterById(theaterId)
+    theater.value = {
+      id: data.id,
+      name: data.name,
+      locationName: data.locationName,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      imageUrl: data.imageUrl || '', // 确保有默认值
+      /* shops:
+        data.shops.map((shop: Shop) => ({
+          id: shop.shopId,
+          name: shop.name,
+          location: shop.location,
+          category: shop.category,
+          image: shop.image || '', // 确保有默认值
+        })) || [], // 确保有默认值 */
+    }
+  } catch (e) {
+    console.error('获取剧院信息失败:', e)
+    errorMessage.value = '剧院信息加载失败，请稍后再试。'
+  } finally {
+    loading.value = false
+  }
+}
 
+// 店铺数据，从后端接口获取
+const fetchShops = async () => {
+  try {
+    shops.value = await getShopsByTheaterId(theaterId)
+  } catch (e) {
+    console.error('获取店铺失败:', e)
+    errorMessage.value = '无法加载店铺数据，请稍后再试。'
+  } finally {
+    loading.value = false
+  }
+}
+
+//页面加载时获取剧院信息
+onMounted(() => {
+  theaterInformation()
+  fetchShops()
+})
+//const shops = theater.value.shops || []
 // 店铺类型
-const shopTypes = [
-  { label: '周边美食', value: 'food' },
-  { label: '周边住宿', value: 'hotel' },
-  { label: '周边游玩', value: 'fun' },
+const shopCategorys = [
+  { label: '周边美食', value: 1 },
+  { label: '周边住宿', value: 2 },
+  { label: '周边游玩', value: 3 },
 ]
-const selectedType = ref('food')
+const selectedCategory = ref(1) // 默认选中第一个类型
 
 // 模拟店铺数据，实际可通过API获取
 const shops = ref([
   // 美食
   {
-    id: 1,
-    name: '老北京炸酱面好吃好吃好吃好吃啊啊啊',
-    image: 'https://img1.doubanio.com/pview/drama_subject_poster/m/public/c18ea468e1fbf29.jpg',
-    type: 'food',
-  },
-  {
-    id: 2,
-    name: '全聚德烤鸭',
-    image: 'https://img1.doubanio.com/view/photo/l/public/p2575466404.webp',
-    type: 'food',
-  },
-  // 住宿
-  {
-    id: 3,
-    name: '北京饭店',
-    image: 'https://img1.doubanio.com/view/photo/l/public/p2575466405.webp',
-    type: 'hotel',
-  },
-  {
-    id: 4,
-    name: '王府井大酒店',
-    image: 'https://img1.doubanio.com/view/photo/l/public/p2575466406.webp',
-    type: 'hotel',
-  },
-  // 游玩
-  {
-    id: 5,
-    name: '故宫博物院',
-    image: 'https://img1.doubanio.com/view/photo/l/public/p2575466407.webp',
-    type: 'fun',
-  },
-  {
-    id: 6,
-    name: '天安门广场',
-    image: 'https://img1.doubanio.com/view/photo/l/public/p2575466408.webp',
-    type: 'fun',
+    shopId: 0,
+    name: '',
+    location: '',
+    category: 1, // 1: 美食, 2: 住宿, 3: 游玩
+    image: '',
   },
 ])
 
 // 当前类型下的店铺
-const filteredShops = computed(() => shops.value.filter((s) => s.type === selectedType.value))
-
-// 当前选中的店铺
+const filteredShops = computed(() =>
+  shops.value.filter((s) => s.category === selectedCategory.value),
+)
 const selectedShop = ref<(typeof shops.value)[0] | null>(null)
-
 // 评价数据，key为店铺id
 const reviews = ref<Record<number, string[]>>({
   1: ['面很好吃', '环境不错'],
@@ -161,10 +194,10 @@ function selectShop(shop: (typeof shops.value)[0]) {
 // 发送评价
 function submitReview() {
   if (selectedShop.value && newReview.value.trim()) {
-    if (!reviews.value[selectedShop.value.id]) {
-      reviews.value[selectedShop.value.id] = []
+    if (!reviews.value[selectedShop.value.shopId]) {
+      reviews.value[selectedShop.value.shopId] = []
     }
-    reviews.value[selectedShop.value.id].push(newReview.value.trim())
+    reviews.value[selectedShop.value.shopId].push(newReview.value.trim())
     newReview.value = ''
   }
 }
