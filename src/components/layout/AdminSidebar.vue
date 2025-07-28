@@ -1,5 +1,5 @@
 <template>
-  <el-aside width="200px" style="background:#F2E1AE; min-height:100vh;">
+  <el-aside width="200px" style="position:fixed; background:#F2E1AE; min-height:100vh;">
     <!-- 顶部 Logo -->
     <div class="logo-box">
       <img src="@/assets/logo.png" alt="Logo" />
