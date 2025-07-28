@@ -43,7 +43,7 @@ export const getAllMusicals = async () => {
 // 根据 id 查询指定的音乐剧
 export const getMusicalById = async (id:number) => {
   try {
-    const response = await axios.get(`/${id}`);
+    const response = await musicalApi.get(`/${id}`);
     return response.data || null;
   } catch (error) {
     console.error(`Error fetching musical with id ${id}:`, error);
@@ -51,8 +51,29 @@ export const getMusicalById = async (id:number) => {
   }
 };
 
+// 创建新剧目
+export const createMusical = async (musical: any) => {
+  const res = await musicalApi.post('', musical);
+  return res.data;
+};
+
+// 更新剧目
+export const updateMusical = async (id: number, musical: any) => {
+  const res = await musicalApi.put(`/${id}`, musical);
+  return res.data;
+};
+
+// 删除剧目
+export const deleteMusical = async (id: number) => {
+  const res = await musicalApi.delete(`/${id}`);
+  return res.data;
+};
+
 export default {
   getOriginalMusicals,
   getNonOriginalMusicals,
   getAllMusicals,
+  createMusical,
+  updateMusical,
+  deleteMusical
 };
