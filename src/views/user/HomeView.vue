@@ -21,7 +21,7 @@
       <ul class="news-list">
         <li v-for="news in newsList" :key="news.id" class="news-item">
           <div class="news-title">{{ news.title }}</div>
-          <div class="news-meta">{{ news.date }}</div>
+          <div class="news-meta">{{ formatDate(news.date) }}</div>
           <div class="news-summary">{{ news.summary }}</div>
         </li>
       </ul>
@@ -41,7 +41,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { getNewsList } from '@/api'
+import { newsApi } from '@/api/admin/news'; // 确保路径正确
+import type { News } from '@/types/news'; // 确保路径正确
+
 import 'element-plus/es/components/carousel/style/css'
 import 'element-plus/es/components/carousel-item/style/css'
 
@@ -82,21 +84,51 @@ const router = useRouter()
 const goToTheater = (id: number) => {
   router.push({ name: 'TheaterDetail', params: { id } })
 }
-interface NewsItem {
-  id: number;
-  title: string;
-  date: string;
-  summary: string;
-}
-const newsList = ref<NewsItem[]>([])
+
+const newsList = ref<News[]>([]);
+
+const formatDate = (dateStr: string) => {
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false // 使用24小时制
+    });
+  } catch (e) {
+    return dateStr;
+  }
+};
+
+// 获取最新资讯列表
 onMounted(async () => {
   try {
-    const data = await getNewsList()
-    newsList.value = Array.isArray(data) ? data : []
-  } catch {
-    newsList.value = []
+    const data = await newsApi.getAllNews();
+    newsList.value = data;
+  } catch (error) {
+    console.error('Failed to fetch news:', error);
+    newsList.value = [];
   }
-})
+});
+    /* 直接将指定的新闻信息赋值给 newsList
+    newsList.value = [
+      {
+        id: 1,
+        title: "TEST1",
+        date: "2025-07-28T12:52:54.000+00:00",
+        summary: "tesing 编辑"
+      },
+  {
+    "id": 3,
+    "title": "从管理员前端测试",
+    "date": "2025-06-30T16:00:00.000+00:00",
+    "summary": "hihih"
+  }
+    ];*/
+
 const recommendList = ref([
   { id: 1, name: '哈姆雷特', image: 'https://img1.doubanio.com/pview/drama_subject_poster/m/public/c18ea468e1fbf29.jpg' },
   { id: 2, name: '剧院魅影', image: 'https://img1.doubanio.com/pview/drama_subject_poster/m/public/65f4e84e65cfdf0.jpg' },
@@ -112,6 +144,38 @@ const goToShow = (id: number) => {
   background: #fafaf8;
   min-height: 100vh;
   padding-bottom: 40px;
+}
+.news-section h2, .recommend-section h2  {
+  color: #a0522d;
+  font-size: 24px;
+  margin-top: -5px; /* 增加顶部外边距 */
+  margin-bottom: 20px;
+}
+.news-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.news-item {
+  border-bottom: 1px solid #eee;
+  padding: 16px 0 10px 0;
+}
+.news-item:last-child {
+  border-bottom: none;
+}
+.news-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #59310e;
+}
+.news-meta {
+  font-size: 13px;
+  color: #bfa074;
+  margin: 4px 0 6px 0;
+}
+.news-summary {
+  color: #666;
+  font-size: 15px;
 }
 .carousel-banner {
   position: relative;
@@ -142,7 +206,7 @@ const goToShow = (id: number) => {
   font-weight: bold;
   margin-bottom: 10px;
   letter-spacing: 2px;
-}
+  }
 .banner-text p {
   font-size: 20px;
   margin: 0;
@@ -155,37 +219,6 @@ const goToShow = (id: number) => {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   padding: 32px 28px 24px 28px;
-}
-.news-section h2, .recommend-section h2 {
-  color: #a0522d;
-  font-size: 24px;
-  margin-bottom: 18px;
-}
-.news-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.news-item {
-  border-bottom: 1px solid #eee;
-  padding: 16px 0 10px 0;
-}
-.news-item:last-child {
-  border-bottom: none;
-}
-.news-title {
-  font-size: 18px;
-  font-weight: bold;
-  color: #59310e;
-}
-.news-meta {
-  font-size: 13px;
-  color: #bfa074;
-  margin: 4px 0 6px 0;
-}
-.news-summary {
-  color: #666;
-  font-size: 15px;
 }
 .recommend-list {
   display: flex;

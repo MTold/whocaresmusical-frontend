@@ -502,24 +502,24 @@ onMounted(() => {
 }
 
 .el-button--danger {
-  background-color: #e74c3c;
+  background-color: #d75725;
   border-color: #c0392b;
 }
 
 .el-button--danger.is-active,
 .el-button--danger:active {
-  background-color: #c0392b;
-  border-color: #a93226;
+  background-color: #d75725;
+  border-color: #c0392b;
 }
 
 .el-button--success {
-  background-color: #27ae60;
-  border-color: #219653;
+  background-color: #ffb76f;
+  border-color: #ffe5a4;
 }
 
 .el-button--success.is-active,
 .el-button--success:active {
-  background-color: #219653;
-  border-color: #1e8449;
+  background-color: #ffb76f;
+  border-color: #ffe5a4;
 }
 </style>
