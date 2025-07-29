@@ -8,7 +8,6 @@
       <!-- Tab切换 -->
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
         <el-tab-pane label="已通过" name="passed" />
-        <el-tab-pane label="待审核" name="pending" />
         <el-tab-pane label="违规信息" name="violation" />
       </el-tabs>
 
@@ -77,32 +76,82 @@
             {{ formatDate(row.createdAt) }}
           </template>
         </el-table-column>
+
+        <!-- 操作列 -->
         <el-table-column
-          v-if="activeTab === 'pending'"
           fixed="right"
           label="操作"
           width="220"
           align="center"
-
         >
           <template #default="{ row }">
-  <el-button
-    size="small"
-    type="success"
-    link
-    @click="approve(row.id)"
-    v-if="row.reviewStatus === 0">通过</el-button>
+            <el-button size="small" type="primary" link @click="openDetail(row)">
+              查看
+            </el-button>
 
-  <el-button
-    size="small"
-    type="danger"
-    link
-    @click="reject(row.id)"
-    v-if="row.reviewStatus === 0" >拒绝</el-button>
-</template>
+            <el-button
+              v-if="row.reviewStatus === 1"
+              size="small"
+              type="warning"
+              link
+              @click="reject(row.id)"
+            >
+              判为违规
+            </el-button>
+
+            <el-button
+              v-if="row.reviewStatus === 2"
+              size="small"
+              type="success"
+              link
+              @click="approve(row.id)"
+            >
+              审核通过
+            </el-button>
+          </template>
         </el-table-column>
       </el-table>
+      <!-- 评论详情对话框 -->
+<el-dialog
+  v-model="reviewDetailDialogVisible"
+  title="评论详情"
+  width="600px"
+  destroy-on-close
+  custom-class="review-dialog-bg"
+>
+  <div class="review-detail">
+    <div class="detail-item">
+      <span class="label">编号：</span>
+      <span class="value">{{ currentReview.id }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="label">用户：</span>
+      <span class="value">{{ currentReview.username }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="label">剧目：</span>
+      <span class="value">{{ currentReview.performanceName }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="label">评分：</span>
+      <span class="value">{{ currentReview.rating }} 星</span>
+    </div>
+    <div class="detail-item content">
+      <span class="label">内容：</span>
+      <div class="value">{{ currentReview.content }}</div>
+    </div>
+    <div class="detail-item">
+      <span class="label">时间：</span>
+      <span class="value">{{ formatDate(currentReview.createdAt) }}</span>
+    </div>
+  </div>
 
+  <template #footer>
+    <span class="dialog-footer">
+      <el-button @click="reviewDetailDialogVisible = false">关闭</el-button>
+    </span>
+  </template>
+</el-dialog>
       <!-- 分页 -->
       <div class="pagination-wrapper">
         <el-pagination
@@ -119,16 +168,18 @@
   </div>
 </template>
 
-
-<script >
+<script>
 import { ref, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import StarRating from '@/components/common/StarRating.vue'
-import review, {
+import {
   getReviewsByStatus,
-  updateReviewStatus,
-  deleteReview
+  updateReviewStatus
 } from '@/api/review'
+
+
+const reviewDetailDialogVisible = ref(false)
+const currentReview = ref({})
 
 export default {
   components: {
@@ -190,7 +241,7 @@ const columns = computed(() => {
     }));
 
 
-    total.value = review.totalElements;
+    total.value = response.totalElements || 0;
     } catch (error) {
       console.error('数据加载错误:', error);
       ElMessage.error('数据加载失败: ' + error.message);
@@ -206,10 +257,9 @@ const columns = computed(() => {
     const getStatusByTab = (tab) => {
       const map = {
         'passed': 1,
-        'pending': 0,
         'violation': 2
       }
-      return map[tab] || 0
+      return map[tab] || 1
     }
 
     // 事件处理
@@ -247,6 +297,7 @@ const approve = async (id) => {
     ElMessage.success('审核通过');
     // 刷新数据
     await fetchData();
+
   } catch (error) {
     // 只有当错误不是用户取消操作时才显示错误消息
     if (error !== 'cancel') {
@@ -267,6 +318,8 @@ const reject = async (id) => {
     ElMessage.success('已标记为违规');
     // 刷新数据
     await fetchData();
+    // 通知用户端刷新统计
+    //eventBus.emit('violation-changed', performanceId);
   } catch (error) {
     // 只有当错误不是用户取消操作时才显示错误消息
     if (error !== 'cancel') {
@@ -293,7 +346,9 @@ const reject = async (id) => {
     }
 
     const openDetail = (row) => {
-      ElMessage.info(`查看评价详情: ${row.content}`)
+      //ElMessage.info(`查看评价详情: ${row.content}`)
+      currentReview.value = row
+      reviewDetailDialogVisible.value = true
     }
 
     // 辅助函数
@@ -324,6 +379,8 @@ const reject = async (id) => {
       total,
       loading,
       tableData,
+      reviewDetailDialogVisible,
+      currentReview,
       handleTabChange,
       handleSearch,
       handleSizeChange,
@@ -408,12 +465,6 @@ const reject = async (id) => {
   }
 }
 
-/* 隐藏滚动空白列 */
-:deep(.el-table th.gutter),
-:deep(.el-table colgroup col[name='gutter']) {
-  display: none;
-  width: 0;
-}
 
 
 /* ===== 颜色调整 ===== */
