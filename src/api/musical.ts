@@ -51,8 +51,21 @@ export const getMusicalById = async (id:number) => {
   }
 };
 
+// 获取高评分的音乐剧
+export const getTopRatedMusicals = async () => {
+  try {
+    const response = await musicalApi.get('/top-rated');
+    return response.data || [];
+  } catch (error) {
+    console.error('Error fetching top rated musicals:', error);
+    return [];
+  }
+};
+
 export default {
   getOriginalMusicals,
   getNonOriginalMusicals,
   getAllMusicals,
+  getMusicalById,
+  getTopRatedMusicals,
 };

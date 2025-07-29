@@ -274,24 +274,25 @@ const getPersonalizedRecommendation = async (userQuery: string): Promise<string>
         const recList = recommendations.slice(0, 3).map((rec: any) => rec.name).join('、')
         return `为您推荐近期热门的音乐剧：${recList}。这些剧目在观众中评价很高，值得一看！`
       }
+      return '抱歉，暂时没有合适的剧目推荐。'
     } else {
       // 已登录且有用户数据，返回个性化推荐
-      const favoritesList = userData.value.favorites.map(f => f.musicalName || f.name || '未知剧目').slice(0, 3).join('、')
-      const historyList = userData.value.browsingHistory.map(h => h.musicalName || h.name || '未知剧目').slice(0, 3).join('、')
+      const favoritesList = userData.value?.favorites?.map(f => f.musicalName || f.name || '未知剧目').slice(0, 3).join('、') || ''
+      const historyList = userData.value?.browsingHistory?.map(h => h.musicalName || h.name || '未知剧目').slice(0, 3).join('、') || ''
       
       if (recommendations.length > 0) {
         const recList = recommendations.slice(0, 3).map(rec => rec.name).join('、')
         
         let personalizedMessage = `根据您的`
-        const parts = []
+        const parts: string[] = []
         
-        if (userData.value.favorites.length > 0) {
+        if (userData.value?.favorites?.length && userData.value.favorites.length > 0) {
           parts.push(`收藏（${favoritesList}）`)
         }
-        if (userData.value.browsingHistory.length > 0) {
+        if (userData.value?.browsingHistory?.length && userData.value.browsingHistory.length > 0) {
           parts.push(`浏览历史（${historyList}）`)
         }
-        if (userData.value.reviews.length > 0) {
+        if (userData.value?.reviews?.length && userData.value.reviews.length > 0) {
           const reviewMusicals = userData.value.reviews.map(r => r.musicalName || '剧目').slice(0, 2).join('、')
           parts.push(`对${reviewMusicals}等${userData.value.reviews.length}部剧目的评价`)
         }
