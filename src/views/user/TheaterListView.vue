@@ -9,9 +9,14 @@
         class="search-input"
         @keyup.enter="onSearch"
       />
-      <!-- 搜索按钮，点击时触发搜索 -->
       <button class="search-btn" @click="onSearch">搜索</button>
     </div>
+
+    <!-- 距离排序按钮 -->
+    <div class="distance-sort">
+      <button @click="sortByDistance">距离优先</button>
+    </div>
+
     <div class="theaters-gallery">
       <div v-if="filteredTheaters.length > 0" class="theaters-grid">
         <div
@@ -32,6 +37,7 @@
   </div>
 </template>
 
+
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -46,6 +52,7 @@ interface Theater {
   imageUrl: string
 }
 
+
 export default defineComponent({
   setup() {
     const router = useRouter() // 路由实例，用于跳转页面
@@ -54,6 +61,66 @@ export default defineComponent({
     const theaters = ref<Theater[]>([])
     const errorMessage = ref('')
     const loading = ref(true)
+    const userLocation = ref<{ lat: number; lng: number }>({ lat: 0, lng: 0 })
+
+    // 获取用户位置
+    const getUserLocation = async () => {
+      try {
+        const position = await getCurrentLocation()
+        userLocation.value = position
+      } catch (e) {
+        console.error('无法获取当前位置:', e)
+      }
+    }
+
+    // 获取当前位置的函数
+    const getCurrentLocation = () => {
+      return new Promise<{ lat: number; lng: number }>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            resolve({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            })
+          },
+          (error) => {
+            reject(error)
+          }
+        )
+      })
+    }
+
+    // Haversine 公式计算两点之间的距离（单位：公里）
+    const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+      const R = 6371 // 地球半径（公里）
+      const r1 = lat1 * Math.PI / 180
+      const r2 = lat2 * Math.PI / 180
+      const dr = (lat2 - lat1) * Math.PI / 180
+      const df= (lon2 - lon1) * Math.PI / 180
+
+      const a = Math.sin(dr / 2) * Math.sin(dr / 2) +
+        Math.cos(r1) * Math.cos(r2) *
+        Math.sin(df / 2) * Math.sin(df / 2)
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+      return R * c
+    }
+
+
+    // 按距离排序
+    const sortByDistance = async () => {
+      await getUserLocation() // 获取用户位置
+
+      theaters.value.sort((a, b) => {
+        const distanceA = calculateDistance(
+          userLocation.value.lat, userLocation.value.lng, a.latitude, a.longitude
+        )
+        const distanceB = calculateDistance(
+          userLocation.value.lat, userLocation.value.lng, b.latitude, b.longitude
+        )
+        return distanceA - distanceB
+      })
+    }
 
     // 剧院数据，从后端接口获取
     const fetchTheaters = async () => {
@@ -96,6 +163,7 @@ export default defineComponent({
       onSearch, // 搜索方法
       goToDetail, // 跳转详情方法
       fetchTheaters,
+      sortByDistance,
     }
   },
 })
@@ -190,7 +258,37 @@ export default defineComponent({
   color: #333;
   margin-top: 0;
 }
+/* 距离排序按钮样式 */
+.distance-sort {
+  margin-bottom:50px;
+  text-align: center;
+}
 
+.distance-sort button {
+  background-color: #f0e1d6;
+  border: none;
+  padding: 8px 300px;
+  font-size: 16px;
+  color: #5c4326; /* 深棕色文字 */
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease-in-out;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+}
+
+.distance-sort button:hover {
+  background-color: #e4c9b0; /* 悬停时背景色稍微深一些 */
+  transform: translateY(-2px); /* 添加按钮悬浮效果 */
+}
+
+.distance-sort button:active {
+  transform: translateY(2px); /* 按钮按下时稍微下沉 */
+}
+
+.distance-sort button:focus {
+  outline: none; /* 去掉聚焦时的默认边框 */
+  box-shadow: 0 0 0 4px rgba(238, 143, 45, 0.5); /* 聚焦时添加光晕效果 */
+}
 /* 响应式布局 */
 @media (max-width: 768px) {
   .header {

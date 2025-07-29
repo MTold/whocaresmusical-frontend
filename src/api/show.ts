@@ -1,4 +1,3 @@
-// src/api/show.ts
 import axios from 'axios';
 
 const showApi = axios.create({
@@ -17,6 +16,17 @@ export const getAllShows = async () => {
     return [];
   }
 };
+
+export const getMusicals = async (): Promise<any[]> => {
+  try {
+    const response = await axios.get('http://localhost:8080/api/musicals');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching all shows:', error);
+    throw error; // Re-throw the error to handle it in the component
+  }
+};
+
 
 // 获取指定 musical_id 的所有演出
 export const getShowsByMusicalId = async (musicalId: number) => {
@@ -42,6 +52,7 @@ export const getShowsByTheaterId = async (theaterId: number) => {
 
 export default {
   getAllShows,
+  getMusicals,
   getShowsByMusicalId,
   getShowsByTheaterId,
 };

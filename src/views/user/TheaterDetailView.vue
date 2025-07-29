@@ -6,7 +6,15 @@
         <img :src="theater.imageUrl" alt="剧院图片" class="theater-img" v-if="theater.imageUrl" />
       </div>
       <div class="theater-name">{{ theater.name }}</div>
+      <!-- 获取当前位置按钮 -->
+      <div class="location-info">
+        <button @click="getUserLocation">获取当前位置</button>
+        <div v-if="userLocation.lat && userLocation.lng">
+          <p>当前位置: 经度: {{ userLocation.lng }}, 纬度: {{ userLocation.lat }}</p>
+        </div>
+      </div>
     </div>
+
 
     <!-- 中间：类型选择栏 + 店铺列表 -->
     <div class="center-panel">
@@ -40,6 +48,7 @@
         <div v-if="filteredShops.length === 0" class="no-shop">暂无相关店铺</div>
       </div>
     </div>
+
 
     <!-- 右侧：店铺评价 -->
     <div class="right-panel">
@@ -208,6 +217,39 @@ onMounted(() => {
     selectShop(filteredShops.value[0])
   }
 })
+// 定义变量保存用户位置信息
+const userLocation = ref<{ lat: number; lng: number }>({
+  lat: 0,
+  lng: 0,
+});
+
+// 获取用户位置
+const getUserLocation = async () => {
+  try {
+    const position = await getCurrentLocation();
+    userLocation.value = position;
+  } catch (e) {
+    console.error('无法获取当前位置:', e);
+  }
+};
+
+// 获取当前位置的函数
+const getCurrentLocation = () => {
+  return new Promise<{ lat: number; lng: number }>((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      (error) => {
+        reject(error);
+      }
+    );
+  });
+};
+
 </script>
 
 <style scoped>
@@ -519,5 +561,30 @@ onMounted(() => {
   min-height: 80px;
   max-width: 100%;
   max-height: 100%;
+}
+.location-info {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.location-info button {
+  background-color: #e4c9b0;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  color: #5c4326;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.location-info button:hover {
+  background-color: #d1b295;
+}
+
+.location-info p {
+  margin-top: 10px;
+  font-size: 18px;
+  color: #5c4326;
 }
 </style>
