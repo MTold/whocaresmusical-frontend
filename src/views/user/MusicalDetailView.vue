@@ -5,7 +5,7 @@
       <div class="show-info">
         <p class="show-name">{{ show.name }}</p>
         <p class="show-category">{{ show.category }}</p>
-        <p class="show-description" v-html="show.description"></p> <!-- 使用 v-html 使换行符生效 -->
+        <p class="show-description" v-html="show.description"></p>
         <div class="actions">
           <el-button
             type="danger"
@@ -19,8 +19,10 @@
       </div>
     </div>
 
+    <!-- 未来演出计划表格 -->
     <div class="schedule-table">
-      <table v-if="show.schedules.length > 0">
+      <h2>未来演出计划</h2>
+      <table v-if="show.futureSchedules.length > 0">
         <thead>
         <tr>
           <th>日期</th>
@@ -29,17 +31,41 @@
         </tr>
         </thead>
         <tbody>
-        <tr v-for="schedule in show.schedules" :key="schedule.id">
+        <tr v-for="schedule in show.futureSchedules" :key="schedule.id">
           <td>{{ schedule.date }}</td>
           <td>{{ schedule.time }}</td>
-          <td>{{ schedule.cast }}</td> <!-- 演员信息 -->
+          <td>{{ schedule.cast }}</td>
         </tr>
         </tbody>
       </table>
 
-      <!-- 如果排期为空，显示对应文字 -->
       <div v-else class="no-schedules">
-        <p>没有排期信息</p>
+        <p>没有未来排期信息</p>
+      </div>
+    </div>
+
+    <!-- 历史演出计划表格 -->
+    <div class="schedule-table">
+      <h2>历史演出计划</h2>
+      <table v-if="show.pastSchedules.length > 0">
+        <thead>
+        <tr>
+          <th>日期</th>
+          <th>时间</th>
+          <th>演员</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="schedule in show.pastSchedules" :key="schedule.id">
+          <td>{{ schedule.date }}</td>
+          <td>{{ schedule.time }}</td>
+          <td>{{ schedule.cast }}</td>
+        </tr>
+        </tbody>
+      </table>
+
+      <div v-else class="no-schedules">
+        <p>没有历史排期信息</p>
       </div>
     </div>
 
@@ -48,7 +74,6 @@
     </div>
   </div>
 </template>
-
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -57,6 +82,7 @@ import { Star, StarFilled } from '@element-plus/icons-vue'
 import { checkFavoriteStatus, addFavorite, removeFavorite } from '@/api/favorite'
 import { recordBrowsing } from '@/api/history'
 import axios from 'axios'
+
 const route = useRoute()
 const router = useRouter()
 let showId = Number(route.params.id)
@@ -68,32 +94,49 @@ const show = ref({
   category: '',
   description: '',
   image: '',
-  schedules: [] as Array<{
+  futureSchedules: [] as Array<{
     id: number;
     date: string;
     time: string;
     cast: string;
-  }>,  //
+  }>,
+  pastSchedules: [] as Array<{
+    id: number;
+    date: string;
+    time: string;
+    cast: string;
+  }>,
 });
 
+// 获取今天的日期，格式为 YYYY-MM-DD
+const today = new Date().toISOString().split('T')[0];
+
+// 获取剧目详情并处理排期
 const fetchShowDetails = async () => {
   try {
     const response = await axios.get(`http://localhost:8080/api/musicals/${showId}`);
     const data = response.data;
 
     // 处理排期数据
+    const schedules = data.shows.map((schedule: any) => ({
+      id: schedule.id,
+      date: schedule.date,
+      time: schedule.time,
+      cast: schedule.cast,
+    }));
+
+    // 按日期分类排期，分为未来和历史
+    const futureSchedules = schedules.filter((schedule) => schedule.date >= today).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const pastSchedules = schedules.filter((schedule) => schedule.date < today).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
     show.value = {
       id: data.id,
       name: data.name,
       category: data.original ? '原创' : '非原创',
       description: data.info.replace(/\r\n/g, '<br/>'), // 转换换行符为 <br/>
       image: data.imageUrl,
-      schedules: data.shows.map((schedule: any) => ({
-        id: schedule.id,
-        date: schedule.date,
-        time: schedule.time,
-        cast: schedule.cast,
-      })),
+      futureSchedules,
+      pastSchedules,
     };
   } catch (error) {
     console.error('获取剧目信息失败:', error);
@@ -186,7 +229,6 @@ onUnmounted(() => {
   window.removeEventListener('favorite-changed', handleFavoriteChange as EventListener)
 })
 </script>
-
 <style scoped>
 .show-detail-view {
   display: flex;
@@ -261,7 +303,7 @@ td {
   margin-top: 40px;
   width: 100%;
   text-align: center;
-  margin-bottom:100px;
+  margin-bottom: 100px;
 }
 
 button {

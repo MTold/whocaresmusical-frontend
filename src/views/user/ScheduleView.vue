@@ -4,6 +4,7 @@
       <div class="calendar">
         <el-calendar
           ref="calendarRef"
+          :key="calendarKey"
           v-model="selectedDate"
           @pick="handleDatePick"
           :first-day-of-week="1"
@@ -64,6 +65,7 @@
         </el-calendar>
       </div>
 
+      <!-- 剧目信息面板 -->
       <div class="show-details">
         <div v-if="currentShows.length > 0">
           <h3>当日排期 ({{ currentShows.length }} 场)</h3>
@@ -251,6 +253,7 @@ onMounted(() => {
 })
 </script>
 
+
 <style scoped>
 .schedule-view {
   display: flex;
@@ -413,6 +416,7 @@ onMounted(() => {
   color: #6c757d;
 }
 
+/* 剧目列表滚动限制 */
 .show-details {
   background-color: #fff;
   padding: 25px;
@@ -494,4 +498,21 @@ onMounted(() => {
     gap: 0;
   }
 }
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.current-date {
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+  margin-right: 30px;
+}
+
+.el-button-group{
+  margin-right: 10px;
+}
+
 </style>
