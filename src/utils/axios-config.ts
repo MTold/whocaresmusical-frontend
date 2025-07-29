@@ -23,11 +23,40 @@ const setupAxios = () => {
     },
     (error) => {
       if (error.response?.status === 401) {
-        // Token过期，清除本地存储并重定向到登录页
+        // 排除AI助手相关的API调用，避免触发登录重定向
+        const url = error.config?.url || ''
+        const method = error.config?.method || ''
+        
+        // AI助手相关API端点 - 这些调用不应该触发登录重定向
+        const aiRelatedEndpoints = [
+          '/history',
+          '/favorites', 
+          '/reviews/user/me',
+          '/musicals/top-rated',
+          '/api/history',
+          '/api/favorites',
+          '/api/reviews/user/me',
+          '/api/musicals/top-rated'
+        ]
+        
+        const isAiRelated = aiRelatedEndpoints.some(endpoint => 
+          url.includes(endpoint) || url.endsWith(endpoint)
+        )
+        
+        if (isAiRelated) {
+          // AI助手相关API，不触发登录重定向，直接返回错误
+          return Promise.reject(error)
+        }
+        
+        // 其他API调用，正常处理token过期
         localStorage.removeItem('token')
         localStorage.removeItem('username')
         localStorage.removeItem('isAdmin')
-        window.location.href = '/login'
+        
+        // 确保不会无限重定向
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login'
+        }
       }
       return Promise.reject(error)
     }

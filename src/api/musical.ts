@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const musicalApi = axios.create({
-  baseURL: 'http://localhost:8080/api/musicals',
+  baseURL: '/api/musicals',
   timeout: 10000,
   withCredentials: true,
 });
@@ -43,7 +43,7 @@ export const getAllMusicals = async () => {
 // 根据 id 查询指定的音乐剧
 export const getMusicalById = async (id:number) => {
   try {
-    const response = await axios.get(`/${id}`);
+    const response = await musicalApi.get(`/${id}`);
     return response.data || null;
   } catch (error) {
     console.error(`Error fetching musical with id ${id}:`, error);
@@ -51,8 +51,22 @@ export const getMusicalById = async (id:number) => {
   }
 };
 
+// 获取按评分排序的前N个音乐剧
+export const getTopRatedMusicals = async (limit: number = 10) => {
+  try {
+    const response = await musicalApi.get('/top-rated', {
+      params: { limit }
+    });
+    return response.data || [];
+  } catch (error) {
+    console.error('Error fetching top rated musicals:', error);
+    return [];
+  }
+};
+
 export default {
   getOriginalMusicals,
   getNonOriginalMusicals,
   getAllMusicals,
+  getTopRatedMusicals,
 };

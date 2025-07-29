@@ -2,7 +2,7 @@
 import axios from 'axios'
 
 const musicalApi = axios.create({
-  baseURL: 'http://localhost:8080/api/theaters',
+  baseURL: '/api/theaters',
   timeout: 10000,
   withCredentials: true,
 })

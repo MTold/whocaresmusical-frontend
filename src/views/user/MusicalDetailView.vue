@@ -173,6 +173,7 @@ watch(
   (newId) => {
     if (newId) {
       showId = Number(newId)
+      fetchShowDetails() // 重新获取剧目详情
       checkFavorite()
       recordBrowsing(showId)
     }

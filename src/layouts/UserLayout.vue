@@ -5,6 +5,8 @@
     <UserHeader v-if="!isAdminPath" />
     <router-view />
     <UserFooter v-if="!isAdminPath" />
+    <!-- AI Assistant -->
+    <AIAssistant v-if="!isAdminPath" />
   </div>
 </template>
 
@@ -13,7 +15,15 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import UserHeader from '@/components/layout/UserHeader.vue'
 import UserFooter from '@/components/layout/UserFooter.vue'
+import AIAssistant from '@/components/AIAssistant.vue'
 
 const route = useRoute()
 const isAdminPath = computed(() => route.path.startsWith('/admin'))
 </script>
+
+<style scoped>
+/* Ensure AI Assistant doesn't interfere with layout */
+.user-layout {
+  position: relative;
+}
+</style>

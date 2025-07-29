@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const showApi = axios.create({
-  baseURL: 'http://localhost:8080/api/shows',
+  baseURL: '/api/shows',
   timeout: 10000,
   withCredentials: true,
 });

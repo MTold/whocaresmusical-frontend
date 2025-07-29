@@ -3,7 +3,7 @@ import { authApi } from '@/api/auth';
 
 // 使用Vite代理配置，所以使用相对路径
 const reviewApi = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: '/api',
   timeout: 10000,
   withCredentials: true
 });
