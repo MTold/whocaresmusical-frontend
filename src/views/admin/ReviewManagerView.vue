@@ -398,21 +398,22 @@ const reject = async (id) => {
 <style scoped>
 .review-manager {
   padding: 20px;
-  background: #ffffff;
+  background:rgba(255, 255, 255, 0);
   border-radius: 4px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   position: absolute;
   top: 60px;
-  left: 16%;
+  left: 15%;
   right: 20px;
 }
 
 .page-title {
-  font-size: 24px;
+  font-size: 35px;
   font-weight: bold;
   color: #59310e;
   margin-bottom: 20px;
   text-align: center;
+  font-family: '宋体', serif;
 }
 
 .control-area {

@@ -539,6 +539,7 @@ onMounted(async () => {
   font-size: 24px;
   margin-top: 0; /* 移除顶部边距 */
   margin-bottom: 20px;
+  font-family: '黑体';
 }
 
 .news-list {
@@ -557,9 +558,10 @@ onMounted(async () => {
 }
 
 .news-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   color: #59310e;
+  font-family: '宋体', serif;
 }
 
 .news-meta {
@@ -571,6 +573,7 @@ onMounted(async () => {
 .news-summary {
   color: #666;
   font-size: 15px;
+  font-family: '仿宋', serif;
 }
 
 .section {

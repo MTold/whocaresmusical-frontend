@@ -18,6 +18,7 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
 /* 确保容器和侧边栏的样式不会影响主内容区 */
 .el-container {
   display: flex;
+  background: url('/src/assets/login_bg.png') center center / cover no-repeat;
 }
 
 .el-aside {

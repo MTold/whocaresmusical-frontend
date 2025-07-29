@@ -90,8 +90,9 @@ const handleUserIconClick = () => {
 }
 .nav-tab {
   color: #8C837B;
-  font-size: 18px;
-  font-weight: 500;
+  font-family: '黑体', serif;
+  font-size: 20px;
+  font-weight: bold;
   text-decoration: none;
   padding: 8px 16px;
   border-radius: 6px;

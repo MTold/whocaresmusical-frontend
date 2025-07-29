@@ -62,13 +62,13 @@ function logout() {
 .admin-info {
   max-width: 500px; /* 增加最大宽度 */
   margin: 60px auto 0 auto; /* 增加顶部边距 */
-  background: #fff;
+  background: #ffffff00;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.1); /* 增加阴影深度 */
   padding: 48px 40px; /* 增加内边距 */
   position: absolute;   /* 或 fixed，视需求而定 */
-  top: 15px;
-  left: 25%;
+  top: 50px;
+  left: 30%;
 }
 
 .info-form {
@@ -88,10 +88,12 @@ function logout() {
 
 .label {
   color: #333; /* 增加标签颜色的对比度 */
-  font-size: 18px; /* 增加字体大小 */
+  font-size: 25px; /* 增加字体大小 */
   width: 100px; /* 增加标签宽度 */
   flex-shrink: 0;
   letter-spacing: 1px;
+  font-family: '宋体', serif; /* 使用宋体字体 */
+  font-weight: bold; /* 增加标签字体粗细 */
 }
 
 .input {
@@ -99,7 +101,8 @@ function logout() {
   padding: 10px 16px; /* 增加输入框内边距 */
   border: 1px solid #ccc; /* 调整边框颜色 */
   border-radius: 8px; /* 增加圆角 */
-  font-size: 18px; /* 增加字体大小 */
+  font-size: 20px; /* 增加字体大小 */
+  font-family: '仿宋', serif;
   background: #f9f9f9; /* 调整背景色 */
   transition: border 0.2s, box-shadow 0.2s;
 }
@@ -128,6 +131,8 @@ function logout() {
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(230,126,34,0.2); /* 增加阴影深度 */
   transition: background 0.2s, box-shadow 0.2s;
+  font-family: '宋体', serif; /* 使用宋体字体 */
+  font-weight: bold; /* 增加按钮字体粗细 */
 }
 
 .save-btn:hover {
@@ -136,17 +141,19 @@ function logout() {
 
 .logout-btn {
   background: #fff;
-  color: #e74c3c;
-  border: 2px solid #e74c3c; /* 增加边框宽度 */
+  color: #8c837b;
+  border: 2px solid #8c837b; /* 增加边框宽度 */
   padding: 10px 26px; /* 增加按钮内边距 */
   border-radius: 8px; /* 增加圆角 */
   font-size: 18px; /* 增加字体大小 */
   cursor: pointer;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  font-family: '宋体', serif; /* 使用宋体字体 */
+  font-weight: bold; /* 增加按钮字体粗细 */
 }
 
 .logout-btn:hover {
-  background: #e74c3c;
+  background: #59310e;
   color: #fff;
   box-shadow: 0 4px 16px rgba(231, 76, 60, 0.2); /* 增加阴影深度 */
 }
