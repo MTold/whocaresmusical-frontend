@@ -55,6 +55,9 @@
               @click="goToDetail(show.musicalId)"
             >
               <p>{{ show.time }} {{ show.musicalName }}</p>
+              <p class="theater-link" @click.stop="goToTheater(show.theaterId)">
+                {{ show.theaterName }}
+              </p>
             </li>
           </ul>
         </div>
@@ -124,6 +127,10 @@ export default defineComponent({
       router.push(`/shows/${id}`);
     };
 
+    const goToTheater = (id: number) => {
+      router.push(`/theaters/${id}`);
+    };
+
     const showsOnSelectedDate = computed(() => {
       const dateStr = formatDate(selectedDate.value);
       return dailyShowMap.value[dateStr] || [];
@@ -166,7 +173,8 @@ export default defineComponent({
       goToDetail,
       onMonthChange,
       selectDate,
-      calendarRef
+      calendarRef,
+      goToTheater
     };
   }
 });
