@@ -1,15 +1,17 @@
 <template>
   <div class="home-view">
     <!-- 轮播图容器 -->
+     <div class="home-title">沪cares musicals<br/>发现精彩演出，畅享剧院生活</div>
     <div class="carousel-section">
       <!-- 椭圆形轮播区域 -->
       <div class="banner">
         <div class="img-list img-wrapper" ref="imgList">
-          <div
+          <router-link
             v-for="(show, index) in carouselShows"
             :key="`show-${show.id}-${index}`"
             class="img-box"
             :data-index="index"
+            :to="'/shows/' + show.id"
             :id="getImgBoxId(index)"
           >
             <div class="info">
@@ -22,7 +24,7 @@
               @error="handleImageError"
               @load="handleImageLoad"
             />
-          </div>
+          </router-link>
         </div>
       </div>
 
@@ -361,12 +363,26 @@ onMounted(async () => {
   position: relative;
 }
 
+.home-title {
+    position: absolute;
+    margin-top: 10px;
+    left: 50%;
+    z-index: 100;
+    transform: translate(-50%, 0);
+    top: 20px;
+    text-align: center;
+    font-size: 26px;
+    color: #59310e;
+    font-weight: bold;
+    font-family: '华文中宋', Calibri, sans-serif;
+
+}
 /* 轮播图容器样式 */
 .carousel-section {
   background: #fafaf8;/* 设置背景颜色 */
   position: relative;
   width: 100%;
-  height: 800px; /* 增加高度，为按钮留出空间 */
+  height: 900px; /* 增加高度，为按钮留出空间 */
 }
 
 .banner {
@@ -385,7 +401,8 @@ onMounted(async () => {
   display: flex;
   position: absolute;
   width: 100%;
-  height: 500px;
+  height: 600px;
+
   transform: translate(13.39vw, 0);
   animation: admission 1.5s;
 }
@@ -446,7 +463,8 @@ onMounted(async () => {
 .btn-group {
   position: absolute;
   left: 50%;
-  bottom: 100px;
+  top: 600px;
+  margin-bottom: 30px;
   transform: translate(-50%, 50%);
   transition: 1s;
   opacity: 0;
@@ -475,9 +493,9 @@ onMounted(async () => {
 
 .btn-group .btn:hover {
   transform: scale(1.1);
-  background-color: #171717;
+  background-color: #59310e;
   box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-  border-color: #171717;
+  border-color: #59310e;
 }
 
 .btn-group .btn:hover .icon {
@@ -509,14 +527,13 @@ onMounted(async () => {
 .btn-group .btn .icon {
   width: 20px;
   height: 20px;
-  fill: #171717;
+  fill: #bf5f0b;
   transition: fill 0.3s ease;
   color: #171717; /* 添加color属性 */
 }
 
-.btn-group .btn:hover .icon {
-  fill: #fff;
-  color: #fff; /* 添加color属性 */
+.btn-group .btn .left {
+  transform: rotate(0deg);
 }
 
 .btn-group .btn .right {

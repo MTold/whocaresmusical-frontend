@@ -2,15 +2,15 @@
   <header class="user-header">
     <div class="header-content">
       <div class="logo-group">
-        <router-link to="/" class="logo-link">
+        <router-link to="/home" class="logo-link">
           <img src="@/assets/logo.png" alt="Logo" class="logo" />
         </router-link>
-        <router-link to="/" class="logoslogan-link">
+        <router-link to="/home" class="logoslogan-link">
           <img src="@/assets/logo_slogan.png" alt="Logoslogan" class="slogan" />
         </router-link>
       </div>
       <nav class="nav-tabs">
-        <router-link to="/" class="nav-tab" active-class="active">首页资讯</router-link>
+        <router-link to="/home" class="nav-tab" active-class="active">首页资讯</router-link>
         <router-link to="/schedule" class="nav-tab" active-class="active">所有排期</router-link>
         <router-link to="/theaters" class="nav-tab" active-class="active">剧院列表</router-link>
         <router-link to="/shows" class="nav-tab" active-class="active">剧目列表</router-link>

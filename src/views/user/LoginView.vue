@@ -38,7 +38,7 @@
 
           <!-- 第二行：放弃登录，返回首页 -->
           <div class="line2">
-            <router-link to="/" class="link">放弃登录，返回首页</router-link>
+            <router-link to="/home" class="link">放弃登录，返回首页</router-link>
           </div>
         </div>
       </template>

@@ -21,6 +21,12 @@ const route = useRoute()
 const isAdminPath = computed(() => route.path.startsWith('/admin'))
 </script>
 
+<style>
+body {
+  margin: 0;
+}
+</style>
+
 <style scoped>
 /* Ensure AI Assistant doesn't interfere with layout */
 .user-layout {
