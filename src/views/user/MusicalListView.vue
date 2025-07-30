@@ -1,47 +1,42 @@
 <template>
-  <div class="all-shows-view">
-    <div class="header">
-      <input
-        type="text"
-        v-model="inputQuery"
-        placeholder="搜索剧目"
-        class="search-input"
-        @keyup.enter="onSearch"
-      />
-      <button class="search-btn" @click="onSearch">搜索</button>
-      <!--
-      <select v-model="selectedCategory" class="category-select">
-        <option value="">所有类别</option>
-        <option value="original">原创</option>
-        <option value="non-original">非原创</option>
-      </select>
-      -->
-    </div>
-    <div class="shows-gallery">
-      <!-- 如果正在加载，则显示"内容加载中" -->
-      <div v-if="loading" class="loading">
-        <p>内容加载中...</p>
+  <keep-alive>
+    <div class="all-shows-view">
+      <div class="header">
+        <input
+          type="text"
+          v-model="inputQuery"
+          placeholder="搜索剧目"
+          class="search-input"
+          @keyup.enter="onSearch"
+        />
+        <button class="search-btn" @click="onSearch">搜索</button>
       </div>
+      <div class="shows-gallery">
+        <!-- 如果正在加载，则显示"内容加载中" -->
+        <div v-if="loading" class="loading">
+          <p>内容加载中...</p>
+        </div>
 
-      <!-- 显示音乐剧列表 -->
-      <div v-if="filteredMusicals.length > 0 && !loading" class="shows-grid">
-        <div
-          v-for="show in filteredMusicals"
-          :key="show.id"
-          class="show-item"
-          @click="goToDetail(show.id)"
-        >
-          <img :src="show.imageUrl" alt="Show image" class="show-image" />
-          <p class="show-name">{{ show.name }}</p>
+        <!-- 显示音乐剧列表 -->
+        <div v-if="filteredMusicals.length > 0 && !loading" class="shows-grid">
+          <div
+            v-for="show in filteredMusicals"
+            :key="show.id"
+            class="show-item"
+            @click="goToDetail(show.id)"
+          >
+            <img :src="show.imageUrl" alt="Show image" class="show-image" />
+            <p class="show-name">{{ show.name }}</p>
+          </div>
+        </div>
+
+        <!-- 显示提示信息 -->
+        <div v-else-if="!loading">
+          <p>没有符合条件的剧目。</p>
         </div>
       </div>
-
-      <!-- 显示提示信息 -->
-      <div v-else-if="!loading">
-        <p>没有符合条件的剧目。</p>
-      </div>
     </div>
-  </div>
+  </keep-alive>
 </template>
 
 <script lang="ts">
@@ -61,12 +56,21 @@ export default defineComponent({
     // 获取所有音乐剧数据
     const fetchMusicals = async () => {
       try {
-        musicals.value = await musicalApi.getAllMusicals();
+        // 先尝试从 localStorage 获取缓存数据
+        const cachedMusicals = localStorage.getItem('musicals');
+        if (cachedMusicals) {
+          musicals.value = JSON.parse(cachedMusicals); // 如果缓存存在，直接使用缓存数据
+          loading.value = false;
+        } else {
+          // 如果缓存不存在，发起请求获取数据
+          const response = await musicalApi.getAllMusicals();
+          musicals.value = response;
+          localStorage.setItem('musicals', JSON.stringify(response)); // 将数据缓存到 localStorage
+          loading.value = false;
+        }
       } catch (error) {
         console.error('获取音乐剧失败:', error);
         errorMessage.value = '无法加载音乐剧数据，请稍后再试。'; // 错误提示
-      } finally {
-        loading.value = false; // 加载完成后，设置加载状态为 false
       }
     };
 
