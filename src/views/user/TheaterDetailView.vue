@@ -163,7 +163,7 @@ const shops = ref([
   {
     shopId: 0,
     name: '',
-    location: '',
+    address: '',
     category: 1, // 1: 美食, 2: 住宿, 3: 游玩
     image: '',
   },
