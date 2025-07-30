@@ -6,9 +6,19 @@
         <img :src="theater.imageUrl" alt="剧院图片" class="theater-img" v-if="theater.imageUrl" />
       </div>
       <div class="theater-name">{{ theater.name }}</div>
+      <div
+        v-if="theater.locationName && theater.locationName !== theater.name"
+        class="theater-location"
+      >
+        <el-icon :size="20" style="vertical-align: middle; margin-right: 4px">
+          <LocationInformation />
+        </el-icon>
+        {{ theater.locationName }}
+      </div>
     </div>
 
     <!-- 中间：类型选择栏 + 店铺列表 -->
+
     <div class="center-panel">
       <!-- 棕色竖线分割 -->
       <div class="divider"></div>
@@ -44,27 +54,27 @@
     <!-- 右侧：店铺评价 -->
     <div class="right-panel">
       <div v-if="selectedShop">
-        <div class="shop-title">{{ selectedShop.name }} 的用户评价</div>
+        <div class="shop-title">{{ selectedShop.name }}</div>
         <div class="review-list">
-          <div v-if="reviews[selectedShop.shopId]?.length">
-            <div
-              v-for="(review, idx) in reviews[selectedShop.shopId]"
-              :key="idx"
-              class="review-item"
-            >
-              {{ review }}
+          <div v-if="shopReviews?.length" style="height: 600px; overflow-y: auto">
+            <div v-for="review in shopReviews" :key="review.id" class="review-item">
+              <div class="review-header">
+                <span class="review-user">{{ review.username || '匿名用户' }}</span>
+                <span class="review-date">{{ formatDate(review.createdAt) }}</span>
+              </div>
+              <div class="review-content">{{ review.content }}</div>
             </div>
           </div>
           <div v-else class="no-review">暂无评价</div>
         </div>
         <div class="review-input">
           <input
-            v-model="newReview"
+            v-model="newReview.content"
             type="text"
             placeholder="输入你的评价"
             @keyup.enter="submitReview"
           />
-          <button @click="submitReview">发送</button>
+          <button @click="submitReview" :disabled="!newReview.content.trim()">发送</button>
         </div>
       </div>
       <div v-else class="no-shop-selected">请选择一个店铺查看评价</div>
@@ -73,24 +83,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import { useRoute } from 'vue-router'
 import { getTheaterById } from '@/api/theater'
 import { getShopsByTheaterId } from '@/api/shop'
-//import axios from 'axios'
+import { getShopReviewsByShop, createShopReview } from '@/api/shopReview'
+import { ElMessage } from 'element-plus'
+import { LocationInformation } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const theaterId = Number(route.params.id) // 当前剧院id，确保为数字类型
 const errorMessage = ref('')
 const loading = ref(true)
 
-/* type Shop = {
-  shopId: number
-  name: string
-  location: string
-  category: number // 1: 美食, 2: 住宿, 3: 游玩
-  image: string
-} */
 // 定义剧院对象
 const theater = ref({
   id: theaterId,
@@ -99,7 +104,6 @@ const theater = ref({
   latitude: 0,
   longitude: 0,
   imageUrl: '',
-  //shops: [] as Shop[],
 })
 // 剧院信息，从后端接口获取
 const theaterInformation = async () => {
@@ -112,14 +116,6 @@ const theaterInformation = async () => {
       latitude: data.latitude,
       longitude: data.longitude,
       imageUrl: data.imageUrl || '', // 确保有默认值
-      /* shops:
-        data.shops.map((shop: Shop) => ({
-          id: shop.shopId,
-          name: shop.name,
-          location: shop.location,
-          category: shop.category,
-          image: shop.image || '', // 确保有默认值
-        })) || [], // 确保有默认值 */
     }
   } catch (e) {
     console.error('获取剧院信息失败:', e)
@@ -141,12 +137,12 @@ const fetchShops = async () => {
   }
 }
 
-//页面加载时获取剧院信息
+//页面加载时获取剧院和店铺信息
 onMounted(() => {
   theaterInformation()
   fetchShops()
 })
-//const shops = theater.value.shops || []
+
 // 店铺类型
 const shopCategorys = [
   { label: '周边美食', value: 1 },
@@ -155,9 +151,8 @@ const shopCategorys = [
 ]
 const selectedCategory = ref(1) // 默认选中第一个类型
 
-// 模拟店铺数据，实际可通过API获取
+// 店铺数据
 const shops = ref([
-  // 美食
   {
     shopId: 0,
     name: '',
@@ -171,43 +166,100 @@ const shops = ref([
 const filteredShops = computed(() =>
   shops.value.filter((s) => s.category === selectedCategory.value),
 )
-const selectedShop = ref<(typeof shops.value)[0] | null>(null)
-// 评价数据，key为店铺id
-const reviews = ref<Record<number, string[]>>({
-  1: ['面很好吃', '环境不错'],
-  2: ['烤鸭一绝'],
-  3: [],
-  4: [],
-  5: ['值得一游'],
-  6: [],
-})
 
+// 评价相关响应式数据
+const shopReviews = ref<
+  { id: number; content: string; createdAt: string; username: string; userImage: string | null }[]
+>([])
 // 新评价内容
-const newReview = ref('')
-
-// 选择店铺
-function selectShop(shop: (typeof shops.value)[0]) {
-  selectedShop.value = shop
-  newReview.value = ''
-}
-
-// 发送评价
-function submitReview() {
-  if (selectedShop.value && newReview.value.trim()) {
-    if (!reviews.value[selectedShop.value.shopId]) {
-      reviews.value[selectedShop.value.shopId] = []
-    }
-    reviews.value[selectedShop.value.shopId].push(newReview.value.trim())
-    newReview.value = ''
-  }
-}
-
-// 页面加载时默认选中第一个店铺
-onMounted(() => {
-  if (filteredShops.value.length > 0) {
-    selectShop(filteredShops.value[0])
-  }
+const newReview = reactive({
+  id: null,
+  content: '',
 })
+
+// 选中的店铺
+const selectedShop = ref<(typeof shops.value)[0] | null>(null)
+// 选择店铺时加载评价
+async function selectShop(shop: (typeof shops.value)[0]) {
+  console.log('选择店铺:', shop)
+  selectedShop.value = shop
+  newReview.content = ''
+  await fetchReviews(shop.id)
+}
+
+const fetchReviews = async (shopId: number) => {
+  try {
+    console.log('点击店铺获取评价数据：店铺id:', shopId)
+    console.log('', shopId)
+    const res = await getShopReviewsByShop(shopId)
+    console.log('res is ', res)
+
+    // 假设后端返回的数据结构为 { code: 0, data: [...], message: 'success' }
+    // 其中 data 字段包含评论数据
+    if (res.code === 200 && Array.isArray(res.data)) {
+      shopReviews.value = res.data
+    } else {
+      shopReviews.value = []
+    }
+  } catch (error) {
+    console.error('加载评价失败:', error)
+    shopReviews.value = []
+  }
+}
+
+const submitReview = async () => {
+  if (!selectedShop.value || !newReview.content.trim()) {
+    ElMessage.error('请选择店铺并输入评价内容')
+    return
+  }
+  console.log('提交评价 选择的店铺 ', selectedShop.value)
+  try {
+    console.log('开始提交评价:', {
+      shopId: selectedShop.value.id,
+      content: newReview.content,
+    })
+
+    const response = await createShopReview({
+      shopId: selectedShop.value.id,
+      content: newReview.content,
+    })
+
+    console.log('评价提交成功:', response)
+    clearReview()
+    // 立即添加到当前列表，避免等待重新加载
+    const newReviewItem = {
+      id: response.id,
+      content: response.content,
+      createdAt: response.createdAt,
+      shopId: response.shopId,
+      username: response.username || '匿名用户',
+      userImage: response.userImage || null,
+    }
+
+    shopReviews.value.push(newReviewItem)
+    // await fetchReviews(selectedShop.value.id) // 重新加载评价
+  } catch (error: any) {
+    console.error('提交评价失败:', error)
+    const errorMessage = error.response?.data?.message || error.message || '未知错误'
+    ElMessage.error('评价提交失败: ' + errorMessage)
+  }
+}
+
+const clearReview = () => {
+  newReview.content = ''
+}
+
+// 日期格式化函数
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
 </script>
 
 <style scoped>
@@ -222,7 +274,7 @@ onMounted(() => {
 
 /* 左侧剧院信息 */
 .left-panel {
-  width: 33.33%;
+  width: 32%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -246,15 +298,24 @@ onMounted(() => {
   display: block;
 }
 .theater-name {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: bold;
-  color: #5c4326;
+  color: #000; /* 修改为黑色 */
   text-align: center;
+}
+.theater-location {
+  font-size: 16px;
+  color: #888;
+  text-align: center;
+  margin-top: 15px; /* 原来是4px，现在是两倍 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 中间区域 */
 .center-panel {
-  width: 33.33%;
+  width: 33%;
   display: flex;
   flex-direction: row;
   border-left: none;
@@ -263,11 +324,11 @@ onMounted(() => {
   position: relative;
 }
 
-/* 棕色竖线分割 */
+/* 棕色竖线分割 11111111111111111111111111111111*/
 .divider {
-  width: 4px;
-  background: #5c4326;
-  height: 100%;
+  width: 2px;
+  background: #c9c8c8;
+  height: 430px;
   margin-right: 0;
   border-radius: 2px;
 }
@@ -299,17 +360,17 @@ onMounted(() => {
   writing-mode: vertical-rl;
   text-orientation: mixed;
   font-size: 18px;
-  color: #5c4326;
+  color: #080808;
   letter-spacing: 2px;
   user-select: none;
   font-weight: normal;
 }
 .sidebar-item.active {
-  background: #e4c9b0;
+  background: #663b13;
 }
 .sidebar-item.active .vertical-text {
   font-weight: bold;
-  color: #5c4326;
+  color: #f8f7f6;
 }
 .sidebar-item:not(.active):hover {
   background: #f5e9dd;
@@ -364,7 +425,7 @@ onMounted(() => {
 
 /* 右侧评价区 */
 .right-panel {
-  width: 26.66%; /* 原来33.33%，缩小五分之一 */
+  width: 32%;
   display: flex;
   flex-direction: column;
   padding: 0 30px;
@@ -373,7 +434,7 @@ onMounted(() => {
 .shop-title {
   font-size: 22px;
   font-weight: bold;
-  color: #5c4326;
+  color: #000; /* 修改为黑色 */
   margin-bottom: 18px;
   margin-top: 20px;
 }
@@ -383,15 +444,37 @@ onMounted(() => {
   margin-bottom: 18px;
 }
 .review-item {
+  display: flex;
+  flex-direction: column; /* 纵向排列 */
+  align-items: flex-start;
   background: #f5e9dd;
   border-radius: 6px;
   padding: 10px 14px;
   margin-bottom: 12px;
   color: #5c4326;
-  word-break: break-all; /* 长度超出自动换行 */
-  white-space: pre-line;
-  max-width: 100%;
   box-sizing: border-box;
+}
+.review-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.review-user {
+  color: #333;
+}
+.review-date {
+  color: #888;
+  font-size: 0.95em;
+}
+.review-content {
+  width: 100%;
+  margin-top: 2px;
+  word-break: break-all;
+  white-space: pre-line;
+  font-weight: normal;
 }
 .no-review {
   color: #aaa;
@@ -420,14 +503,22 @@ onMounted(() => {
   padding: 8px 18px;
   border-radius: 5px;
   border: none;
-  background-color: #e4c9b0;
-  color: #5c4326;
+  background-color: #bf5f08; /* 棕色背景 */
+  color: #fff; /* 白色文字 */
   font-size: 16px;
   cursor: pointer;
   transition: background 0.2s;
 }
+
+/* 按钮禁用时为灰色 */
+.review-input button:disabled {
+  background-color: #d2d3d9;
+  color: #fff;
+  cursor: not-allowed;
+}
+
 .review-input button:hover {
-  background-color: #d1b295;
+  background-color: #9c4e07;
 }
 
 /* 保证三大区域不会被压缩到太小 */
@@ -519,5 +610,34 @@ onMounted(() => {
   min-height: 80px;
   max-width: 100%;
   max-height: 100%;
+}
+
+.review-item {
+  background: #f7f1e8;
+  border-radius: 2px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.review-user {
+  flex: 2;
+  font-weight: bold;
+  color: #333;
+}
+
+.review-content {
+  flex: 4;
+  padding: 0 10px;
+}
+
+.review-date {
+  flex: 4;
+  text-align: right;
+  color: #888;
+  font-size: 0.9em;
 }
 </style>
