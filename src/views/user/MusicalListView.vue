@@ -1,6 +1,7 @@
 <template>
   <keep-alive>
     <div class="all-shows-view">
+      <!-- 搜索区域 -->
       <div class="header">
         <input
           type="text"
@@ -11,14 +12,16 @@
         />
         <button class="search-btn" @click="onSearch">搜索</button>
       </div>
+
+      <!-- 显示剧目列表 -->
       <div class="shows-gallery">
-        <!-- 如果正在加载，则显示"内容加载中" -->
+        <!-- 加载中的提示 -->
         <div v-if="loading" class="loading">
           <p>内容加载中...</p>
           <img src="@/assets/loading.gif" alt="加载中..." class="loading-gif"/>
         </div>
 
-        <!-- 显示音乐剧列表 -->
+        <!-- 显示剧目 -->
         <div v-if="filteredMusicals.length > 0 && !loading" class="shows-grid">
           <div
             v-for="show in filteredMusicals"
@@ -31,8 +34,8 @@
           </div>
         </div>
 
-        <!-- 显示提示信息 -->
-        <div v-else-if="!loading">
+        <!-- 显示没有找到剧目的提示 -->
+        <div v-else-if="!loading" class="no-shows">
           <p>没有符合条件的剧目。</p>
         </div>
       </div>
@@ -42,31 +45,32 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
 import musicalApi from '@/api/musical';  // 引入API方法
 
 export default defineComponent({
   setup() {
-    const router = useRouter();
+    const router = useRouter()
+
+    // 数据与状态
     const musicals = ref<any[]>([]);  // 存储音乐剧列表
-    const errorMessage = ref(''); // 存储错误信息
-    const loading = ref(true); // 控制加载状态
-    const inputQuery = ref('') // 输入框内容
-    const searchQuery = ref('') // 实际用于搜索的内容
+    const loading = ref(true); // 加载状态
+    const inputQuery = ref(''); // 输入框内容
+    const searchQuery = ref(''); // 搜索内容
+    const errorMessage = ref(''); // 错误信息
 
     // 获取所有音乐剧数据
     const fetchMusicals = async () => {
       try {
-        // 先尝试从 localStorage 获取缓存数据
         const cachedMusicals = localStorage.getItem('musicals');
         if (cachedMusicals) {
-          musicals.value = JSON.parse(cachedMusicals); // 如果缓存存在，直接使用缓存数据
+          musicals.value = JSON.parse(cachedMusicals); // 使用缓存数据
           loading.value = false;
         } else {
-          // 如果缓存不存在，发起请求获取数据
+          // 如果缓存没有，获取数据并缓存
           const response = await musicalApi.getAllMusicals();
           musicals.value = response;
-          localStorage.setItem('musicals', JSON.stringify(response)); // 将数据缓存到 localStorage
+          localStorage.setItem('musicals', JSON.stringify(response));
           loading.value = false;
         }
       } catch (error) {
@@ -75,24 +79,24 @@ export default defineComponent({
       }
     };
 
-    // 过滤剧院，返回名称包含搜索内容的剧院
+    // 过滤音乐剧
     const filteredMusicals = computed(() => {
       return musicals.value.filter((musical) =>
-        musical.name.toLowerCase().includes(searchQuery.value.toLowerCase()),
-      )
-    })
+        musical.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+      );
+    });
 
-    // 搜索方法，将输入框内容赋值给实际搜索内容
+    // 搜索方法
     const onSearch = () => {
-      searchQuery.value = inputQuery.value
-    }
+      searchQuery.value = inputQuery.value; // 更新搜索内容
+    };
 
     // 跳转到剧目详情页
     const goToDetail = (id: number) => {
       router.push(`/shows/${id}`);
     };
 
-    // 页面加载时调用API获取剧目数据
+    // 页面加载时获取数据
     onMounted(() => {
       fetchMusicals();
     });
@@ -101,10 +105,9 @@ export default defineComponent({
       inputQuery,
       searchQuery,
       filteredMusicals,
-      musicals,
       goToDetail,
       errorMessage,
-      loading, // 返回loading状态
+      loading,
       onSearch
     };
   }
@@ -119,7 +122,7 @@ export default defineComponent({
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  margin-bottom:50px;
+  margin-bottom: 50px;
 }
 
 .header {
@@ -130,7 +133,7 @@ export default defineComponent({
   max-width: 1200px;
   justify-content: center;
 }
-/* 搜索输入框样式 */
+
 .search-input {
   padding: 10px;
   border-radius: 5px;
@@ -139,21 +142,20 @@ export default defineComponent({
   font-size: 20px;
 }
 
-/* 搜索按钮样式（浅咖啡色） */
 .search-btn {
   padding: 10px 24px;
   border-radius: 5px;
   border: none;
-  background-color: #e4c9b0; /* 浅咖啡色 */
+  background-color: #e4c9b0;
   color: #5c4326;
   font-size: 20px;
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .search-btn:hover {
   background-color: #d1b295;
 }
-
 
 .shows-gallery {
   width: 100%;
@@ -192,6 +194,9 @@ export default defineComponent({
   color: #333;
   margin-top: auto;
   margin-bottom: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .no-shows {
