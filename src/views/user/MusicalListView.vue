@@ -15,6 +15,7 @@
         <!-- 如果正在加载，则显示"内容加载中" -->
         <div v-if="loading" class="loading">
           <p>内容加载中...</p>
+          <img src="@/assets/loading.gif" alt="加载中..." class="loading-gif"/>
         </div>
 
         <!-- 显示音乐剧列表 -->
@@ -118,6 +119,7 @@ export default defineComponent({
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
+  margin-bottom:50px;
 }
 
 .header {
