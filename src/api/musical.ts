@@ -62,6 +62,17 @@ export const getTopRatedMusicals = async () => {
   }
 };
 
+export const updateMusical = async (id: number, data: any) => {
+  const res = await musicalApi.put(`/${id}`, data);
+  return res.data;
+};
+
+export const deleteTheater = async (id: number) => {
+  const res = await musicalApi.delete(`/${id}`);
+  return res.data;
+};
+
+
 export default {
   getOriginalMusicals,
   getNonOriginalMusicals,

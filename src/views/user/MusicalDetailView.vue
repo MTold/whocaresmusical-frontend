@@ -5,6 +5,12 @@
       <div class="show-info">
         <p class="show-name">{{ show.name }}</p>
         <p class="show-category">{{ show.category }}</p>
+        <!-- 点击剧院名称时跳转到剧院详情页面 -->
+        <p v-if="theaterInfo" class="show-location" @click="goToTheaterDetail(theaterInfo.theaterId)"
+           style="cursor: pointer; color: blue; text-decoration: underline;">
+          {{ theaterInfo.theaterName }}
+        </p>
+        <p v-else class="show-location">无未来演出计划</p>
         <p class="show-description" v-html="show.description"></p>
         <div class="actions">
           <el-button
@@ -74,6 +80,7 @@
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -95,27 +102,29 @@ const show = ref({
   description: '',
   image: '',
   futureSchedules: [] as Array<{
-    id: number;
-    date: string;
-    time: string;
-    cast: string;
+    id: number
+    date: string
+    time: string
+    cast: string
   }>,
   pastSchedules: [] as Array<{
-    id: number;
-    date: string;
-    time: string;
-    cast: string;
+    id: number
+    date: string
+    time: string
+    cast: string
   }>,
-});
+})
 
+//获取对应剧院信息
+const theaterInfo = ref<{ theaterId: number; theaterName: string } | null>(null)
 // 获取今天的日期，格式为 YYYY-MM-DD
-const today = new Date().toISOString().split('T')[0];
+const today = new Date().toISOString().split('T')[0]
 
 // 获取剧目详情并处理排期
 const fetchShowDetails = async () => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/musicals/${showId}`);
-    const data = response.data;
+    const response = await axios.get(`http://localhost:8080/api/musicals/${showId}`)
+    const data = response.data
 
     // 处理排期数据
     const schedules = data.shows.map((schedule: any) => ({
@@ -123,11 +132,15 @@ const fetchShowDetails = async () => {
       date: schedule.date,
       time: schedule.time,
       cast: schedule.cast,
-    }));
+    }))
 
     // 按日期分类排期，分为未来和历史
-    const futureSchedules = schedules.filter((schedule) => schedule.date >= today).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    const pastSchedules = schedules.filter((schedule) => schedule.date < today).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const futureSchedules = schedules
+      .filter((schedule) => schedule.date >= today)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    const pastSchedules = schedules
+      .filter((schedule) => schedule.date < today)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
     show.value = {
       id: data.id,
@@ -137,16 +150,54 @@ const fetchShowDetails = async () => {
       image: data.imageUrl,
       futureSchedules,
       pastSchedules,
-    };
+    }
+    // 如果有未来排期，读取最近一场排期的 ID
+    if (futureSchedules.length > 0) {
+      fetchTheaterInfo(showId)
+    }
   } catch (error) {
-    console.error('获取剧目信息失败:', error);
+    console.error('获取剧目信息失败:', error)
   }
-};
+}
+
+// 根据 musicalId 获取相关 shows 的剧院信息
+const fetchTheaterInfo = async (musicalId: number) => {
+  try {
+    // 通过 musicalId 获取 shows 数据
+    const response = await axios.get(`http://localhost:8080/api/shows/musical/${musicalId}`)
+    const shows = response.data
+
+    // 检查 shows 数组是否有数据
+    if (shows.length > 0) {
+      // 获取最近的一场演出
+      const latestShow = shows[0]
+      const { theaterId, theaterName } = latestShow
+
+      // 更新 theaterInfo
+      theaterInfo.value = {
+        theaterId,
+        theaterName,
+      }
+    } else {
+      // 如果没有排期信息，可以设置默认或错误提示
+      console.warn('没有找到对应的剧院信息');
+      theaterInfo.value = null
+    }
+  } catch (error) {
+    console.error('获取剧院信息失败:', error)
+    ElMessage.error('获取剧院信息失败，请稍后再试！')
+  }
+}
+
+// 跳转到剧院详情页面
+const goToTheaterDetail = (theaterId: number) => {
+  router.push(`/theaters/${theaterId}`)
+}
 
 // 页面加载时获取剧目信息
 onMounted(() => {
-  fetchShowDetails();
-});
+  fetchShowDetails()
+})
 
 // 跳转到评价页面
 const goToReview = () => {
@@ -175,11 +226,15 @@ const toggleFavorite = async () => {
     if (isFavorite.value) {
       await removeFavorite(showId)
       ElMessage.success('已取消收藏')
-      window.dispatchEvent(new CustomEvent('favorite-changed', { detail: { musicalId: showId, isFavorite: false } }))
+      window.dispatchEvent(
+        new CustomEvent('favorite-changed', { detail: { musicalId: showId, isFavorite: false } }),
+      )
     } else {
       await addFavorite(showId)
       ElMessage.success('收藏成功')
-      window.dispatchEvent(new CustomEvent('favorite-changed', { detail: { musicalId: showId, isFavorite: true } }))
+      window.dispatchEvent(
+        new CustomEvent('favorite-changed', { detail: { musicalId: showId, isFavorite: true } }),
+      )
     }
     isFavorite.value = !isFavorite.value
   } catch (error: any) {
@@ -220,7 +275,7 @@ watch(
       checkFavorite()
       recordBrowsing(showId)
     }
-  }
+  },
 )
 
 // 清理事件监听器

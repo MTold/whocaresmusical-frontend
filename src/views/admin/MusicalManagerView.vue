@@ -2,7 +2,15 @@
   <div class="musical-manager">
     <h1>剧目信息管理</h1>
 
-    <el-table :data="paginatedMusicals" style="width: 100%;" border>
+      <el-table
+        v-loading="loading"
+        :data="paginatedMusicals"
+        style="width: 100%;"
+        border
+        :fit="true"
+        highlight-current-row
+        empty-text="暂无剧院信息"
+      >
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="name" label="名称" />
       <el-table-column prop="info" label="简介" />
@@ -60,6 +68,7 @@ import musicalApi from '@/api/musical'
 const musicals = ref<any[]>([])
 const editDialogVisible = ref(false)
 const editForm = ref<any>({})
+const loading = ref(true)
 
 // 分页相关
 const currentPage = ref(1)
@@ -76,10 +85,13 @@ const handlePageChange = (page: number) => {
 
 // 获取全部剧目
 const fetchMusicals = async () => {
+  loading.value = true
   try {
     musicals.value = await musicalApi.getAllMusicals()
   } catch (error) {
     ElMessage.error('加载剧目失败')
+  } finally {
+    loading.value = false
   }
 }
 
