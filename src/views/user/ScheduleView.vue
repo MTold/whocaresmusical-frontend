@@ -25,24 +25,24 @@
                   value-format="YYYY-MM-DD"
                   class="quick-selector"
                 />
-              <div class="header-left">
-                <el-button
-                  class="nav-button prev-button"
-                  size="default"
-                  @click="handlePrevMonth"
-                  :icon="ArrowLeft"
-                  circle
-                />
-              </div>
-              <div class="header-right">
-                <el-button
-                  class="nav-button next-button"
-                  size="default"
-                  @click="handleNextMonth"
-                  :icon="ArrowRight"
-                  circle
-                />
-              </div>
+                <div class="header-left">
+                  <el-button
+                    class="nav-button prev-button"
+                    size="default"
+                    @click="handlePrevMonth"
+                    :icon="ArrowLeft"
+                    circle
+                  />
+                </div>
+                <div class="header-right">
+                  <el-button
+                    class="nav-button next-button"
+                    size="default"
+                    @click="handleNextMonth"
+                    :icon="ArrowRight"
+                    circle
+                  />
+                </div>
               </div>
 
             </div>
@@ -53,8 +53,10 @@
               class="custom-date-cell"
               :class="{
                 'has-shows': hasShows(data.day),
-                'selected': isSelected(data.day),
-                'no-shows': isCurrentMonth(data.day) && !hasShows(data.day),
+                'no-shows': !hasShows(data.day),
+                'one-to-ten': getShowsCount(data.day) <= 10 && getShowsCount(data.day) > 0,
+                'eleven-to-twenty': getShowsCount(data.day) > 10 && getShowsCount(data.day) <= 20,
+                'twenty-one-plus': getShowsCount(data.day) > 20,
                 'other-month': !isCurrentMonth(data.day)
               }"
               @click.prevent="handleDateCellClick(data.day)"
@@ -73,9 +75,32 @@
             <li
               v-for="show in currentShows"
               :key="show.id"
-              @click="goToDetail(show.musicalId)"
             >
-              <p>{{ show.time }} - {{ show.musicalName }} - {{ show.cast }}</p>
+              <!-- 剧目名突出显示，悬浮提示 "转到剧目详情页" -->
+              <strong
+                class="show-name"
+                @mouseover="showTooltip = '转到剧目详情页'"
+                @mouseleave="showTooltip = ''"
+                :title="showTooltip"
+                @click="goToDetail(show.musicalId)"
+              >
+                {{ show.musicalName }}
+              </strong>
+              <!-- 时间与剧院信息换行显示 -->
+              <div class="show-time">{{ show.time }}
+                <!-- 剧院名称悬浮提示 "转到剧院详情页" -->
+                <span
+                  class="theater-name"
+                  @mouseover="theaterTooltip = '转到剧院详情页'"
+                  @mouseleave="theaterTooltip = ''"
+                  :title="theaterTooltip"
+                  @click="goToTheaterDetail(show.theaterId)"
+                >
+                {{ show.theaterName }}
+                </span>
+              </div>
+              <!-- 卡司信息略小显示 -->
+              <div class="show-cast">{{ show.cast }}</div>
             </li>
           </ul>
         </div>
@@ -87,6 +112,7 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -94,10 +120,13 @@ import { ElMessage } from 'element-plus'
 import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import axios from 'axios'
 
+
 const router = useRouter()
 const selectedDate = ref(new Date())
 const quickSelectDate = ref('')
 const showsData = ref<Record<string, any[]>>({})
+const showTooltip = ref('')
+const theaterTooltip = ref('')
 
 // 格式化日期为 YYYY-MM-DD
 const formatDate = (date: Date): string => {
@@ -178,6 +207,12 @@ const isCurrentMonth = (date: string): boolean => {
          cellDate.getFullYear() === currentDate.getFullYear()
 }
 
+// 获取每天的剧目数量
+const getShowsCount = (date: string): number => {
+  const formattedDate = formatDate(new Date(date))
+  return showsData.value[formattedDate]?.length || 0
+}
+
 // 判断日期是否有演出
 const hasShows = (date: string): boolean => {
   // 确保日期格式正确
@@ -202,6 +237,11 @@ const currentShows = computed(() => {
 // 跳转到详情页
 const goToDetail = (id: number) => {
   router.push(`/shows/${id}`)
+}
+
+// 跳转到剧院详情页
+const goToTheaterDetail = (theaterId: number) => {
+  router.push(`/theaters/${theaterId}`)
 }
 
 // 处理日期单元格点击事件
@@ -385,6 +425,25 @@ onMounted(() => {
   color: #1565c0;
 }
 
+
+/* 1-10 场 */
+.custom-date-cell.one-to-ten {
+  background-color: #e3f2fd; /* 浅蓝色 */
+  color: #1565c0; /* 中等蓝色 */
+}
+
+/* 11-20 场 */
+.custom-date-cell.eleven-to-twenty {
+  background-color: #bbdefb; /* 稍深的蓝色 */
+  color: #1e88e5; /* 深蓝色 */
+}
+
+/* 21 场以上 */
+.custom-date-cell.twenty-one-plus {
+  background-color: #90caf9; /* 蓝色渐变 */
+  color: #0d47a1; /* 深蓝色 */
+}
+
 .custom-date-cell.has-shows:hover {
   background-color: #bbdefb;
 }
@@ -421,6 +480,8 @@ onMounted(() => {
   background-color: #fff;
   padding: 25px;
   border-left: 1px solid #e9ecef;
+  max-height:60vh;
+  overflow-y: auto;
 }
 
 .show-details h3 {
@@ -457,6 +518,28 @@ onMounted(() => {
   margin: 0;
   color: #495057;
 }
+
+
+/* 剧目板块中的各个元素样式 */
+.show-name {
+  font-size: 16px; /* 剧目名加大 */
+  font-weight: 700;
+  display: block; /* 让剧目名独占一行 */
+  margin-bottom: 5px; /* 为剧目名与其他信息之间提供空间 */
+}
+
+.show-time,
+.show-theater {
+  font-size: 14px; /* 时间与剧院信息比剧目名小 */
+  color: #6c757d;
+}
+
+.show-cast {
+  font-size: 12px; /* 卡司信息字体稍微小一些 */
+  color: #adb5bd;
+  margin-top: 5px; /* 给卡司信息留出空间 */
+}
+
 
 /* 响应式设计 */
 @media (max-width: 1200px) {
