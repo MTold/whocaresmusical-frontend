@@ -172,6 +172,7 @@
 import { ref, reactive, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import { eventBus } from '@/utils/eventBus';
 import StarRating from '@/components/common/StarRating.vue';
 import {
   getReviewsByPerformance,
@@ -362,26 +363,12 @@ const changePage = (page: number) => {
 };
 
 const submitReview = async () => {
-  if (!isValidReview.value) {
-    console.log('验证不通过，评分:', newReview.rating, '内容:', newReview.content);
-    return;
-  }
-
-  try {
-    console.log('开始提交评价:', {
-      performanceId: performanceId,
-      content: newReview.content,
-      rating: newReview.rating
-    });
 
     const response = await createReview({
       musicalId: performanceId,
       content: newReview.content,
       rating: newReview.rating
     });
-
-    console.log('评价提交成功:', response);
-    clearReview();
 
     // 立即添加到当前列表，避免等待重新加载
     const newReviewItem = {
@@ -393,20 +380,15 @@ const submitReview = async () => {
       username: response.username || '匿名用户',
       userImage: response.userImage || null
     };
+    ElMessage.success('评价发布成功');
 
-    reviews.value.unshift(newReviewItem);
 
     // 更新统计数据
     await loadReviewStats();
 
     // 可选：刷新全部列表（但主要使用上方手动添加）
-    // await loadReviews();
+    await loadReviews();
 
-  } catch (error: any) {
-    console.error('提交评价失败:', error);
-    const errorMessage = error.response?.data?.message || error.message || '未知错误';
-    ElMessage.error('评价提交失败: ' + errorMessage);
-  }
 };
 
 const editReview = async (review: any) => {
@@ -462,7 +444,6 @@ const handleCloseEditDialog = () => {
 const deleteReviewInternal = async (reviewId: number) => {
   try {
     console.log('删除评价:', reviewId);
-    // @ts-ignore - 确保使用正确的导入
     const { deleteReview: deleteApi } = await import('@/api/review');
     await deleteApi(reviewId);
     await loadReviews();
@@ -486,6 +467,12 @@ const editMyReview = async () => {
 
 // 生命周期
 onMounted(async () => {
+  eventBus.on('violation-changed', (pid) => {
+    if (pid === performanceId) {
+      loadReviewStats();   // 重新拉统计
+      loadReviews();       // 重新拉列表
+    }
+  });
   await Promise.all([
     loadReviews()
     // loadIfReviewed() - 不再需要检查是否已评价，因为没有登录机制

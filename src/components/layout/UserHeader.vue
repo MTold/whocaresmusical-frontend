@@ -13,7 +13,7 @@
         <router-link to="/" class="nav-tab" active-class="active">首页资讯</router-link>
         <router-link to="/schedule" class="nav-tab" active-class="active">所有排期</router-link>
         <router-link to="/theaters" class="nav-tab" active-class="active">剧院列表</router-link>
-        <router-link to="/shows" class="nav-tab" active-class="active">演出列表</router-link>
+        <router-link to="/shows" class="nav-tab" active-class="active">剧目列表</router-link>
         <router-link to="/profile" class="nav-tab" active-class="active">个人中心</router-link>
         <el-button class="user-icon-btn" type="text" @click="handleUserIconClick">
           <svg class="user-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -90,8 +90,9 @@ const handleUserIconClick = () => {
 }
 .nav-tab {
   color: #8C837B;
-  font-size: 18px;
-  font-weight: 500;
+  font-family: '黑体', serif;
+  font-size: 20px;
+  font-weight: bold;
   text-decoration: none;
   padding: 8px 16px;
   border-radius: 6px;

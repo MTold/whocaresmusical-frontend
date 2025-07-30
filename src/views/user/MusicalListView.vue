@@ -4,7 +4,7 @@
       <input
         type="text"
         v-model="inputQuery"
-        placeholder="搜索剧院"
+        placeholder="搜索剧目"
         class="search-input"
         @keyup.enter="onSearch"
       />

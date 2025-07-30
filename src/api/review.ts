@@ -3,7 +3,7 @@ import { authApi } from '@/api/auth';
 
 // 使用Vite代理配置，所以使用相对路径
 const reviewApi = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: '/api',
   timeout: 10000,
   withCredentials: true
 });
@@ -31,20 +31,7 @@ export const getReviewsByStatus = async (
   }
 
 
-/*return {
-    content: response.data.content.map((item: any) => ({
-      id: item.id,                      // 编号
-      content: item.content,            // 评价内容
-      rating: item.rating,              // 评分
-      performanceName: item.performanceName || '未知剧目', // 剧目名称
-      username: item.username || '匿名用户', // 用户
-      createdAt: item.createdAt,        // 提交时间
-      reviewStatus: item.reviewStatus   // 状态
-    })) || [],
-    totalElements: response.data.totalElements || 0,
-    totalPages: response.data.totalPages || 0,
-    pageNumber: response.data.pageNumber || page
-  };*/
+
 
 };
 

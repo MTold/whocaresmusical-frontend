@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type { Message } from '@/types/message'
 
-const API_BASE_URL = 'http://localhost:8080/api/messages'
+const API_BASE_URL = '/api/messages'
 
 export const messageApi = {
   // 获取所有消息

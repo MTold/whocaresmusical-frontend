@@ -362,21 +362,22 @@ onMounted(() => {
 <style scoped>
 .message-manager {
   padding: 20px;
-  background: #ffffff;
+  background:rgba(255, 255, 255, 0);
   border-radius: 4px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   position: absolute;
   top: 60px;
-  left: 16%;
+  left: 15%;
   right: 20px;
 }
 
 .page-title {
-  font-size: 24px;
+  font-size: 35px;
   font-weight: bold;
   color: #59310e;
   margin-bottom: 20px;
   text-align: center;
+  font-family: '宋体', serif;
 }
 
 .control-area {
@@ -502,24 +503,24 @@ onMounted(() => {
 }
 
 .el-button--danger {
-  background-color: #e74c3c;
+  background-color: #d75725;
   border-color: #c0392b;
 }
 
 .el-button--danger.is-active,
 .el-button--danger:active {
-  background-color: #c0392b;
-  border-color: #a93226;
+  background-color: #d75725;
+  border-color: #c0392b;
 }
 
 .el-button--success {
-  background-color: #27ae60;
-  border-color: #219653;
+  background-color: #ffb76f;
+  border-color: #ffe5a4;
 }
 
 .el-button--success.is-active,
 .el-button--success:active {
-  background-color: #219653;
-  border-color: #1e8449;
+  background-color: #ffb76f;
+  border-color: #ffe5a4;
 }
 </style>

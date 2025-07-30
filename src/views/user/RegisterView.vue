@@ -20,9 +20,9 @@
         </el-form-item>
         <el-form-item label="性别" prop="gender">
           <el-select v-model="registerForm.gender" placeholder="请选择性别" style="width: 100%">
-            <el-option label="男" value="male" />
-            <el-option label="女" value="female" />
-            <el-option label="其他" value="other" />
+            <el-option label="男" value="男" />
+            <el-option label="女" value="女" />
+            <el-option label="其他" value="其他" />
           </el-select>
         </el-form-item>
         <el-form-item label="生日" prop="birthday">

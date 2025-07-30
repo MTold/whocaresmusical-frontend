@@ -126,7 +126,7 @@ const onLogin = async () => {
   padding: 40px 30px 30px;
   box-shadow: 0 2px 16px rgba(89, 49, 14, 0.12);
   border-radius: 16px;
-  background: #fff8f0;
+  background: #ffffff00;
   border: 1.5px solid #bfa074;
 }
 .login-title {

@@ -3,7 +3,7 @@ import axios from 'axios';
 //import { authApi } from '@/api/auth';
 
 const shopApi = axios.create({
-  baseURL: 'http://localhost:8080/api/theaters',
+  baseURL: '/api/theaters',
   timeout: 10000,
   withCredentials: true,
 });
