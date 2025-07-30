@@ -6,7 +6,8 @@ const routes = [
     path: '/',
     component: () => import('@/layouts/UserLayout.vue'),
     children: [
-      { path: '', name: 'home', component: () => import('@/views/user/HomeView.vue') },
+      { path: '', redirect: 'home' },
+      { path: 'home', name: 'home', component: () => import('@/views/user/HomeView.vue') },
       {
         path: 'schedule',
         name: 'schedule',
@@ -136,12 +137,12 @@ const router = createRouter({
 router.beforeEach((to, _, next) => {
   const isAdmin = localStorage.getItem('isAdmin') === 'true'
   const isLoggedIn = !!localStorage.getItem('token')
-  
+
   // 检查是否访问个人中心页面
   if (to.path.startsWith('/profile') && !isLoggedIn) {
     return next('/login')
   }
-  
+
   if (to.path.startsWith('/admin') && !isAdmin) return next('/login')
   next()
 })

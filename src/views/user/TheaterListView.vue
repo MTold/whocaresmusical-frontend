@@ -144,8 +144,6 @@ export default defineComponent({
     // 搜索方法，将输入框内容赋值给实际搜索内容
     const onSearch = () => {
       searchQuery.value = inputQuery.value
-      // 如果和后端联动，这里可以调用API获取剧院列表
-      // 例如：await fetchTheatersFromAPI(searchQuery.value)
     }
 
     // 跳转到剧院详情页
@@ -225,6 +223,7 @@ export default defineComponent({
   grid-template-columns: repeat(auto-fill, minmax(250px, 250px));
   justify-content: center;
   gap: 20px;
+  margin-bottom:80px;
 }
 
 /* 单个剧院卡片样式 */

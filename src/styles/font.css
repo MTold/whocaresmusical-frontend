@@ -1,0 +1,47 @@
+/* 中文示例 */
+@font-face {
+  font-family: 'HuaWenSong';           /* 自定义名称，后面直接用 */
+  src: url('@/assets/fonts/STSong.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+/* 华文中宋 */
+@font-face {
+  font-family: 'HuaWenZSong';
+  src: url('@/assets/fonts/STZhongsong.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* 隶书 */
+@font-face {
+  font-family: 'LiShu';
+  src: url('@/assets/fonts/SIMLI.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* 微软雅黑（本地文件，避免用户机器缺失） */
+@font-face {
+  font-family: 'YaHei';
+  src: url('@/assets/fonts/msyh.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* 英文示例 */
+@font-face {
+  font-family: 'Montserrat';
+  src: url('@/assets/fonts/Montserrat-Regular.woff2') format('woff2'),
+       url('@/assets/fonts/Montserrat-Regular.woff')  format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* 全局使用示例 */
+body {
+  font-family: 'HuaWenSong', 'HuaWenZSong','LiShu', 'YaHei', serif,'Montserrat';
+}
+
+/* 谷歌在线字体（不想下载文件时） */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Roboto:wght@400;700&display=swap');
