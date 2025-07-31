@@ -13,16 +13,16 @@
       <span class="admin-divider"></span>
 
       <!-- 搜索框 -->
-      <div class="admin-search-wrapper">
-        <el-input
-          v-model="keyword"
-          placeholder="请输入关键词"
-          clearable
-          @keyup.enter="handleSearch"
-          @clear="handleSearch"
-        />
-        <el-button type="primary" @click="handleSearch">搜索</el-button>
-      </div>
+<!--      <div class="admin-search-wrapper">-->
+<!--        <el-input-->
+<!--          v-model="keyword"-->
+<!--          placeholder="请输入关键词"-->
+<!--          clearable-->
+<!--          @keyup.enter="handleSearch"-->
+<!--          @clear="handleSearch"-->
+<!--        />-->
+<!--        <el-button type="primary" @click="handleSearch">搜索</el-button>-->
+<!--      </div>-->
     </div>
 
     <!-- 表格区域 -->
@@ -47,7 +47,7 @@
         <el-table-column label="操作" width="250">
           <template #default="scope">
             <el-button size="small" @click="editMusical(scope.row)">编辑</el-button>
-            <el-button size="small" @click="viewSchedule(scope.row)">查看排期</el-button>
+<!--            <el-button size="small" @click="viewSchedule(scope.row)">查看排期</el-button>-->
             <el-button size="small" type="danger" @click="deleteMusical(scope.row.id)">删除</el-button>
           </template>
         </el-table-column>
@@ -69,6 +69,9 @@
     <!-- 编辑/添加剧目弹窗 -->
     <el-dialog v-model="editDialogVisible" :title="isEditing ? '编辑剧目' : '添加剧目'" width="600px">
       <el-form :model="editForm" label-width="80px">
+        <el-form-item label="id" prop="id">
+          <el-input v-model="editForm.id" placeholder="请输入id" />
+        </el-form-item>
         <el-form-item label="名称" prop="name">
           <el-input v-model="editForm.name" placeholder="请输入剧目名称" />
         </el-form-item>
@@ -215,7 +218,7 @@ const saveMusical = async () => {
 
 // 添加剧目
 const handleAddMusical = () => {
-  editForm.value = { id: 0, name: '', info: '', imageUrl: '' } // 清空表单数据
+  editForm.value = { id:'', name: '', info: '', imageUrl: '' } // 清空表单数据
   isEditing.value = false
   editDialogVisible.value = true
 }

@@ -4,7 +4,25 @@
   </div>
 
   <div class="admin-page-container">
+    <div class="admin-control-area">
+      <!-- 添加剧剧院按钮 -->
+      <el-button type="primary" @click="handleAddTheater">添加剧院</el-button>
 
+      <!-- 占位空白 -->
+      <span class="admin-divider"></span>
+
+      <!-- 搜索框 -->
+      <!--      <div class="admin-search-wrapper">-->
+      <!--        <el-input-->
+      <!--          v-model="keyword"-->
+      <!--          placeholder="请输入关键词"-->
+      <!--          clearable-->
+      <!--          @keyup.enter="handleSearch"-->
+      <!--          @clear="handleSearch"-->
+      <!--        />-->
+      <!--        <el-button type="primary" @click="handleSearch">搜索</el-button>-->
+      <!--      </div>-->
+    </div>
     <!-- 表格展示 -->
     <div class="admin-table-wrapper">
       <el-table
@@ -48,7 +66,7 @@
     </div>
 
     <!-- 编辑弹窗 -->
-    <el-dialog v-model="editDialogVisible" title="编辑剧院信息" width="500px">
+    <el-dialog v-model="editDialogVisible" :title="isEditing ? '编辑剧院' : '添加剧院'" width="500px">
       <el-form :model="editForm" label-width="90px">
         <el-form-item label="名称">
           <el-input v-model="editForm.name" />
@@ -68,7 +86,7 @@
       </el-form>
       <template #footer>
         <el-button @click="editDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveEdit">保存</el-button>
+        <el-button type="primary" @click="saveTheater">保存</el-button>
       </template>
     </el-dialog>
   </div>
@@ -83,6 +101,7 @@ const theaters = ref<any[]>([])
 const loading = ref(true)
 const editDialogVisible = ref(false)
 const editForm = ref<any>({})
+const isEditing = ref(false)
 
 // 分页
 const currentPage = ref(1)
@@ -94,6 +113,12 @@ const paginatedTheaters = computed(() => {
 
 const handlePageChange = (page: number) => {
   currentPage.value = page
+}
+
+const handleAddTheater = () => {
+  editForm.value = {name:" ",locationName:" ",latitude:" ",longitude:" ",imageUrl:"  "}
+  isEditing.value = false
+  editDialogVisible.value = true
 }
 
 // 获取剧院信息
@@ -110,17 +135,39 @@ const fetchTheaters = async () => {
 
 const editTheater = (theater: any) => {
   editForm.value = { ...theater }
+  isEditing.value = true
   editDialogVisible.value = true
 }
 
-const saveEdit = async () => {
+// 保存剧院
+const saveTheater = async () => {
   try {
-    await theaterApi.updateTheater(editForm.value.id, editForm.value)
-    ElMessage.success('修改成功')
+    if (editForm.value.id) {
+      // 编辑剧目
+      await theaterApi.updateTheater(editForm.value.id, editForm.value)
+      ElMessage.success('剧院更新成功')
+    } else {
+      // 添加剧目
+      await theaterApi.createTheater(editForm.value)
+      ElMessage.success('剧院添加成功')
+    }
     editDialogVisible.value = false
     fetchTheaters()
+  } catch (error) {
+    ElMessage.error('操作失败: ' + (error as Error).message)
+  }
+}
+
+const saveEdit = async () => {
+  console.log("Saving theater with data:", editForm.value); // 打印数据
+  try {
+    await theaterApi.updateTheater(editForm.value.id, editForm.value);
+    ElMessage.success('修改成功');
+    editDialogVisible.value = false;
+    fetchTheaters();
   } catch (e) {
-    ElMessage.error('修改失败')
+    console.error("Error during update:", e); // 打印错误信息
+    ElMessage.error('修改失败');
   }
 }
 
