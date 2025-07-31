@@ -1,17 +1,21 @@
 <template>
-  <div class="user-manager">
-    <h1>用户信息管理</h1>
+  <div class="admin-title-container">
+    <h1 class="admin-page-title">用户信息管理</h1>
+  </div>
+
+  <div class="admin-page-container">
 
     <!-- 表格展示 -->
-    <el-table
-      v-loading="loading"
-      :data="paginatedUsers"
-      style="width: 100%;"
-      border
-      :fit="true"
-      highlight-current-row
-      empty-text="暂无用户信息"
-    >
+    <div class="admin-table-wrapper">
+      <el-table
+        v-loading="loading"
+        :data="paginatedUsers"
+        style="width: 100%;"
+        border
+        :fit="true"
+        highlight-current-row
+        empty-text="暂无用户信息"
+      >
       <el-table-column prop="userId" label="用户ID" width="80" />
       <el-table-column prop="username" label="用户名" min-width="160" />
       <el-table-column prop="phone" label="电话" min-width="150" />
@@ -28,10 +32,11 @@
           <el-button size="small" type="danger" @click="handleDelete(scope.row.userId)">删除</el-button>
         </template>
       </el-table-column>
-    </el-table>
+      </el-table>
+    </div>
 
     <!-- 分页 -->
-    <div class="pagination-container">
+    <div class="admin-pagination-wrapper">
       <el-pagination
         background
         layout="prev, pager, next"
@@ -115,20 +120,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.user-manager {
-  padding: 20px;
-  position: absolute;
-  top: 15px;
-  left: 22%;
-  width: 70%;
-}
-.pagination-container {
-  margin-top: 20px;
-  text-align: center;
-}
-
-.add-user-button {
-  margin-top: 20px;
-  text-align: center;
-}
+/* 使用全局admin-common.css样式 */
 </style>

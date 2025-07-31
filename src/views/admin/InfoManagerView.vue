@@ -1,18 +1,20 @@
 <template>
-  <div class="news-manager">
-    <!-- 标题 -->
-    <h1 class="page-title">资讯管理</h1>
+  <div class="admin-title-container">
+    <h1 class="admin-page-title">资讯管理</h1>
+  </div>
+
+  <div class="admin-page-container">
 
     <!-- 顶部功能区 -->
-    <div class="control-area">
+    <div class="admin-control-area">
       <!-- 添加资讯按钮 -->
       <el-button type="primary" @click="handleAddNews">添加资讯</el-button>
 
       <!-- 占位空白 -->
-      <span class="divider"></span>
+      <span class="admin-divider"></span>
 
       <!-- 搜索框 -->
-      <div class="search-wrapper">
+      <div class="admin-search-wrapper">
         <el-input
           v-model="keyword"
           placeholder="请输入关键词"
@@ -25,7 +27,7 @@
     </div>
 
     <!-- 表格区域 -->
-    <div class="table-wrapper">
+    <div class="admin-table-wrapper">
       <el-table
         :data="tableData"
         border
@@ -75,7 +77,7 @@
       </el-table>
 
       <!-- 分页 -->
-      <div class="pagination-wrapper">
+      <div class="admin-pagination-wrapper">
         <el-pagination
           v-model:current-page="currentPage"
           :page-size="pageSize"
@@ -95,22 +97,22 @@
       width="600px"
       destroy-on-close
     >
-      <div class="news-detail">
-        <div class="detail-item">
+      <div class="admin-detail-dialog">
+        <div class="admin-detail-item">
           <span class="label">标题：</span>
           <span class="value">{{ currentNews.title }}</span>
         </div>
-        <div class="detail-item">
+        <div class="admin-detail-item">
           <span class="label">发布日期：</span>
           <span class="value">{{ formatDate(currentNews.date) }}</span>
         </div>
-        <div class="detail-item content">
+        <div class="admin-detail-item content">
           <span class="label">内容：</span>
           <div class="value" v-html="currentNews.summary"></div>
         </div>
       </div>
       <template #footer>
-        <span class="dialog-footer">
+        <span class="admin-dialog-footer">
           <el-button @click="detailDialogVisible = false">关闭</el-button>
         </span>
       </template>
@@ -149,7 +151,7 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <span class="dialog-footer">
+        <span class="admin-dialog-footer">
           <el-button @click="editDialogVisible = false">取消</el-button>
           <el-button type="primary" @click="saveNews">保存</el-button>
         </span>
@@ -358,167 +360,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.news-manager {
-  padding: 20px;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  position: absolute;
-  top: 60px;
-  left: 15%;
-  right: 20px;
-}
-
-.page-title {
-  font-size: 35px;
-  font-weight: bold;
-  font-family: '宋体', serif;
-  color: #59310e;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.control-area {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.divider {
-  width: 60px;
-  flex-shrink: 0;
-}
-
-.search-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.search-wrapper .el-input {
-  width: 300px;
-}
-
-.table-wrapper {
-  margin-top: 20px;
-}
-
-.pagination-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-.news-detail {
-  padding: 20px;
-}
-
-.detail-item {
-  margin-bottom: 15px;
-  line-height: 1.6;
-}
-
-.detail-item .label {
-  font-weight: bold;
-  color: #59310e;
-  width: 80px;
-  display: inline-block;
-}
-
-.detail-item .value {
-  color: #333;
-}
-
-.detail-item.content {
-  display: flex;
-}
-
-.detail-item.content .label {
-  align-self: flex-start;
-}
-
-.dialog-footer {
-  text-align: right;
-}
-
-@media (max-width: 768px) {
-  .control-area {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-wrapper {
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  .search-wrapper .el-input {
-    width: 100%;
-  }
-}
-
-/* 颜色调整 */
-.el-tabs__item {
-  color: #bfa074;
-}
-
-.el-tabs__item.is-active {
-  color: #a0522d;
-}
-
-.el-input__inner {
-  border-color: #bfa074;
-}
-
-.el-input__inner:focus {
-  border-color: #a0522d;
-}
-
-.el-button {
-  color: #ffffff;
-  background-color: #e6c9b0;
-  border-color: #a0522d;
-}
-
-.el-button.is-active,
-.el-button:active {
-  background-color: #a0522d;
-  border-color: #7a3a1d;
-}
-
-.el-button--primary {
-  background-color: #a0522d;
-  border-color: #7a3a1d;
-}
-
-.el-button--primary.is-active,
-.el-button--primary:active {
-  background-color: #7a3a1d;
-  border-color: #59310e;
-}
-
-.el-button--danger {
-  background-color: #d75725;
-  border-color: #c0392b;
-}
-
-.el-button--danger.is-active,
-.el-button--danger:active {
-  background-color: #d75725;
-  border-color: #c0392b;
-}
-
-.el-button--success {
-  background-color: #ffb76f;
-  border-color: #ffe5a4;
-}
-
-.el-button--success.is-active,
-.el-button--success:active {
-  background-color: #ffb76f;
-  border-color: #ffe5a4;
-}
+/* 使用全局admin-common.css样式 */
 </style>

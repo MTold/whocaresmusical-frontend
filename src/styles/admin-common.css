@@ -1,0 +1,323 @@
+/* 管理员页面通用样式 */
+
+/* 页面容器 */
+.admin-page-container {
+  padding: 20px;
+  background: transparent;
+  position: absolute;
+  top: 120px;
+  left: 15%;
+  right: 20px;
+  min-height: calc(100vh - 180px);
+}
+
+/* 页面标题容器 - 独立于白色背景 */
+.admin-title-container {
+  position: absolute;
+  top: 40px;
+  left: 15%;
+  right: 20px;
+  z-index: 10;
+  text-align: center;
+}
+
+/* 页面标题 - 统一格式 */
+.admin-page-title {
+  font-size: 24px;
+  font-weight: bold;
+  font-family: '宋体', serif;
+  color: #59310e;
+  margin-bottom: 30px;
+  text-align: center;
+  letter-spacing: 2px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  background: transparent;
+  padding: 10px 20px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+/* 控制区域 */
+.admin-control-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 15px;
+  background: transparent;
+  border-radius: 6px;
+  border: 1px solid rgba(191, 160, 116, 0.3);
+}
+
+/* 分隔符 */
+.admin-divider {
+  width: 60px;
+  flex-shrink: 0;
+}
+
+/* 搜索包装器 */
+.admin-search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-search-wrapper .el-input {
+  width: 300px;
+}
+
+/* 表格包装器 */
+.admin-table-wrapper {
+  margin-top: 20px;
+  background: transparent;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* 分页包装器 */
+.admin-pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 15px;
+  background: transparent;
+  border-radius: 6px;
+}
+
+/* 详情对话框样式 */
+.admin-detail-dialog {
+  padding: 20px;
+}
+
+.admin-detail-item {
+  margin-bottom: 15px;
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+}
+
+.admin-detail-item .label {
+  font-weight: bold;
+  color: #59310e;
+  width: 100px;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.admin-detail-item .value {
+  color: #333;
+  flex: 1;
+}
+
+.admin-detail-item.content {
+  display: flex;
+  align-items: flex-start;
+}
+
+.admin-detail-item.content .label {
+  align-self: flex-start;
+}
+
+/* 对话框底部 */
+.admin-dialog-footer {
+  text-align: right;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .admin-page-container {
+    left: 10%;
+    right: 10px;
+  }
+
+  .admin-title-container {
+    left: 10%;
+    right: 10px;
+  }
+
+  .admin-control-area {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-search-wrapper {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .admin-search-wrapper .el-input {
+    width: 100%;
+  }
+
+  .admin-page-title {
+    font-size: 18px;
+  }
+}
+
+/* Element Plus 组件样式覆盖 */
+.admin-page-container .el-table {
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.admin-page-container .el-table th {
+  background-color: rgba(242, 225, 174, 0.8) !important;
+  color: #59310e !important;
+  font-weight: bold;
+  border-bottom: 2px solid #bfa074;
+}
+
+.admin-page-container .el-table td {
+  background-color: rgba(255, 255, 255, 0.6);
+  border-bottom: 1px solid #e2cfa2;
+}
+
+.admin-page-container .el-table--border {
+  border: 1px solid #bfa074;
+}
+
+.admin-page-container .el-table--border th,
+.admin-page-container .el-table--border td {
+  border-right: 1px solid #e2cfa2;
+}
+
+/* 按钮样式统一 */
+.admin-page-container .el-button {
+  color: #ffffff;
+  background-color: #a0522d;
+  border-color: #7a3a1d;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.admin-page-container .el-button:hover {
+  background-color: #7a3a1d;
+  border-color: #59310e;
+  transform: translateY(-1px);
+}
+
+.admin-page-container .el-button--primary {
+  background-color: #a0522d;
+  border-color: #7a3a1d;
+}
+
+.admin-page-container .el-button--primary:hover {
+  background-color: #7a3a1d;
+  border-color: #59310e;
+}
+
+.admin-page-container .el-button--danger {
+  background-color: #d75725;
+  border-color: #c0392b;
+}
+
+.admin-page-container .el-button--danger:hover {
+  background-color: #c0392b;
+  border-color: #a93226;
+}
+
+.admin-page-container .el-button--success {
+  background-color: #27ae60;
+  border-color: #229954;
+}
+
+.admin-page-container .el-button--success:hover {
+  background-color: #229954;
+  border-color: #1e8449;
+}
+
+.admin-page-container .el-button--warning {
+  background-color: #f39c12;
+  border-color: #e67e22;
+}
+
+.admin-page-container .el-button--warning:hover {
+  background-color: #e67e22;
+  border-color: #d35400;
+}
+
+/* 输入框样式 */
+.admin-page-container .el-input__inner {
+  border-color: #bfa074;
+  border-radius: 4px;
+}
+
+.admin-page-container .el-input__inner:focus {
+  border-color: #a0522d;
+  box-shadow: 0 0 0 2px rgba(160, 82, 45, 0.2);
+}
+
+/* 分页样式 */
+.admin-page-container .el-pagination {
+  --el-pagination-bg-color: transparent;
+  --el-pagination-text-color: #59310e;
+  --el-pagination-border-radius: 4px;
+  --el-pagination-button-color: #59310e;
+  --el-pagination-button-bg-color: #f2e1ae;
+  --el-pagination-button-disabled-color: #c0c4cc;
+  --el-pagination-button-disabled-bg-color: #f4f4f5;
+  --el-pagination-hover-color: #a0522d;
+}
+
+.admin-page-container .el-pagination .el-pager li {
+  background-color: #f2e1ae;
+  color: #59310e;
+  border: 1px solid #bfa074;
+}
+
+.admin-page-container .el-pagination .el-pager li.is-active {
+  background-color: #a0522d;
+  color: white;
+  border-color: #7a3a1d;
+}
+
+.admin-page-container .el-pagination .el-pager li:hover {
+  background-color: #bfa074;
+  color: white;
+}
+
+/* 标签页样式 */
+.admin-page-container .el-tabs__item {
+  color: #000000;
+  font-weight: 500;
+}
+
+.admin-page-container .el-tabs__item.is-active {
+  color: #a0522d;
+  font-weight: bold;
+}
+
+.admin-page-container .el-tabs__active-bar {
+  background-color: #a0522d;
+}
+
+/* 对话框样式 */
+.admin-page-container .el-dialog {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.admin-page-container .el-dialog__header {
+  background-color: rgba(242, 225, 174, 0.9);
+  border-bottom: 1px solid rgba(191, 160, 116, 0.7);
+  padding: 20px;
+}
+
+.admin-page-container .el-dialog__title {
+  color: #59310e;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.admin-page-container .el-dialog__body {
+  padding: 30px;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.admin-page-container .el-dialog__footer {
+  background-color: rgba(248, 248, 248, 0.9);
+  border-top: 1px solid rgba(226, 207, 162, 0.7);
+  padding: 15px 20px;
+}

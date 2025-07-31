@@ -1,7 +1,11 @@
 <template>
-  <div class="musical-manager">
-    <h1>剧目信息管理</h1>
+  <div class="admin-title-container">
+    <h1 class="admin-page-title">剧目信息管理</h1>
+  </div>
 
+  <div class="admin-page-container">
+
+    <div class="admin-table-wrapper">
       <el-table
         v-loading="loading"
         :data="paginatedMusicals"
@@ -9,7 +13,7 @@
         border
         :fit="true"
         highlight-current-row
-        empty-text="暂无剧院信息"
+        empty-text="暂无剧目信息"
       >
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="name" label="名称" />
@@ -25,10 +29,11 @@
           <el-button size="small" type="danger" @click="deleteMusical(scope.row.id)">删除</el-button>
         </template>
       </el-table-column>
-    </el-table>
+      </el-table>
+    </div>
 
     <!-- 分页 -->
-    <div class="pagination-container">
+    <div class="admin-pagination-wrapper">
       <el-pagination
         background
         layout="prev, pager, next"
@@ -133,15 +138,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.musical-manager {
-  padding: 20px;
-  position: absolute;
-  top: 15px;
-  left: 22%;
-  width: 70%;
-}
-.pagination-container {
-  margin-top: 20px;
-  text-align: center;
-}
+/* 使用全局admin-common.css样式 */
 </style>
