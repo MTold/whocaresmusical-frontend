@@ -14,7 +14,8 @@
 
     <!-- 距离排序按钮 -->
     <div class="distance-sort">
-      <button @click="sortByDistance">距离优先</button>
+      <button @click="sortByDistance">按距离排序</button>
+      <button @click="sortByName">按字母排序</button>
     </div>
 
     <!-- 提示信息 -->
@@ -185,6 +186,11 @@ export default defineComponent({
       )
     })
 
+    // 按字母顺序排序
+    const sortByName = () => {
+      theaters.value = theaters.value.sort((a, b) => a.name.localeCompare(b.name))
+    }
+
     // 搜索方法，将输入框内容赋值给实际搜索内容
     const onSearch = () => {
       searchQuery.value = inputQuery.value
@@ -212,6 +218,7 @@ export default defineComponent({
       isSorting,
       loading,
       errorMessage,
+      sortByName,
     }
   },
 })
@@ -349,27 +356,27 @@ export default defineComponent({
 .distance-sort button {
   background-color: #f0e1d6;
   border: none;
-  padding: 8px 300px;
-  font-size: 16px;
-  color: #5c4326; /* 深棕色文字 */
+  padding: 6px 18px;
+  font-size: 18px;
+  color: #5c4326;
   border-radius: 10px;
   cursor: pointer;
   transition: background 0.3s ease, transform 0.2s ease-in-out;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-right: 10px;
 }
 
 .distance-sort button:hover {
-  background-color: #e4c9b0; /* 悬停时背景色稍微深一些 */
-  transform: translateY(-2px); /* 添加按钮悬浮效果 */
+  background-color: #e4c9b0;
+  transform: translateY(-2px);
 }
 
 .distance-sort button:active {
-  transform: translateY(2px); /* 按钮按下时稍微下沉 */
+  transform: translateY(2px);
 }
 
 .distance-sort button:focus {
-  outline: none; /* 去掉聚焦时的默认边框 */
-  box-shadow: 0 0 0 4px rgba(238, 143, 45, 0.5); /* 聚焦时添加光晕效果 */
+  background-color: #e4c9b0;
 }
 
 .loading-message {

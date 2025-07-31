@@ -74,7 +74,7 @@ export default defineComponent({
       try {
         const cachedMusicals = localStorage.getItem('musicals');
         const cachedTimestamp = localStorage.getItem('musicalsTimestamp');
-        const cacheExpirationTime = 10 * 60 * 1000; // 缓存有效时间）
+        const cacheExpirationTime = 10 * 60 * 1000; // 缓存有效时间
 
         if (cachedMusicals && cachedTimestamp) {
           const currentTime = new Date().getTime();
@@ -92,7 +92,6 @@ export default defineComponent({
 
         // 如果缓存无效或不存在，重新请求数据
         const response = await musicalApi.getAllMusicals();
-        console.log('API 响应:', response);
         musicals.value = response;
         musicals.value = sortByName(musicals.value);
         localStorage.setItem('musicals', JSON.stringify(response));
@@ -104,7 +103,6 @@ export default defineComponent({
       }
     };
 
-
     // 按名称首字母排序
     const sortByName = (musicals: any[]) => {
       return musicals.sort((a, b) => {
@@ -112,8 +110,13 @@ export default defineComponent({
       });
     };
 
+    // 按评分排序
+    const sortByRating = () => {
+      musicals.value = musicals.value.sort((a, b) => b.averageRating - a.averageRating); // 按评分从高到低排序
+    }
+
+  // 过滤剧目，返回名称包含搜索内容的剧目，并根据筛选条件筛选
     const filteredMusicals = computed(() => {
-      console.log("筛选前的剧目：", musicals.value);
       return musicals.value.filter((musical) => {
         const matchesSearch = musical.name.toLowerCase().includes(searchQuery.value.toLowerCase());
 
@@ -121,13 +124,9 @@ export default defineComponent({
         const hasFutureScheduleBool = musical.hasFutureSchedule === '1'; // 如果是 '1'，则为 true，否则为 false
         const matchesFutureSchedule = showFutureOnly.value ? hasFutureScheduleBool : true;
 
-        // 添加检查日志，确认 hasFutureSchedule 字段
-        //console.log(`剧目: ${musical.name}, 筛选: ${matchesSearch}, 未来演出: ${musical.hasFutureSchedule}`);
-
         return matchesSearch && matchesFutureSchedule;
       });
     });
-
 
     // 搜索方法
     const onSearch = () => {
@@ -152,11 +151,14 @@ export default defineComponent({
       errorMessage,
       loading,
       showFutureOnly,
-      onSearch
+      onSearch,
+      sortByName,
+      sortByRating
     };
   }
 });
 </script>
+
 
 <style scoped>
 .all-shows-view {
@@ -279,6 +281,43 @@ export default defineComponent({
   margin: 20px auto;
   width: 50px;
   height: 50px;
+}
+.distance-sort {
+  margin-bottom:50px;
+  text-align: center;
+}
+
+.distance-sort button {
+  background-color: #f0e1d6;
+  border: none;
+  padding: 6px 18px;
+  font-size: 18px;
+  color: #5c4326;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease-in-out;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-right: 10px;
+}
+
+.distance-sort button:hover {
+  background-color: #e4c9b0;
+  transform: translateY(-2px);
+}
+
+.distance-sort button:active {
+  transform: translateY(2px);
+}
+
+.distance-sort button:focus {
+  background-color: #e4c9b0;
+}
+
+.loading-message {
+  text-align: center;
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 20px;
 }
 
 @media (max-width: 768px) {
