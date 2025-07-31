@@ -127,16 +127,16 @@ onMounted(async () => {
 
     // 初始化虚拟索引数组
     virtualIndexArray = Array.from({ length: selectedShows.length }, (_, i) => i)
-
+    await fetchCarousel();                // 1. 拿到数据
     // 初始化轮播
-    await nextTick()
+    await nextTick() // 2. DOM 渲染完毕
     console.log('轮播数据已设置，开始初始化')
-    initCarousel()
+    initCarousel()// 3. 再初始化轮播 // 此时按钮和轮播都已就绪
   } catch (error) {
     console.error('Failed to fetch shows:', error)
     ElMessage.error('加载剧目失败，使用备用数据')
-    await nextTick()
-    initCarousel()
+
+
   }
   finally {
     loading.value = false   // 数据拿到后隐藏 loading
@@ -179,6 +179,7 @@ const initCarousel = () => {
     }
   }, animationTime * 1000)
 
+
   console.log('轮播初始化完成')
 }
 
@@ -220,7 +221,7 @@ const validateCarouselState = () => {
   return true
 }
 
-// 处理上一张
+// 处理下一张
 const handleNext = () => {
   if (isAnimating) return
   isAnimating = true
@@ -278,7 +279,7 @@ const handleNext = () => {
   }, animationTime * 1000)
 }
 
-// 处理下一张
+// 处理上一张
 const handlePrev = () => {
   if (isAnimating) return
   isAnimating = true
@@ -354,8 +355,47 @@ const formatDate = (dateStr: string) => {
   }
 }
 
+// 缓存工具：key、数据、有效期(ms)
+const CACHE_KEY = 'home-carousel';
+const CACHE_TIME = 10 * 60 * 1000;  // 10 分钟
+
+const getCached = () => {
+  const str = localStorage.getItem(CACHE_KEY);
+  if (!str) return null;
+  const { data, timestamp } = JSON.parse(str);
+  return Date.now() - timestamp < CACHE_TIME ? data : null;
+};
+
+const setCached = (data: any[]) => {
+  localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+};
+
+// 获取轮播数据（带缓存）
+const fetchCarousel = async () => {
+  try {
+    // 1. 先读缓存
+    const cached = getCached();
+    if (cached) {
+      carouselShows.value = cached;
+      } else {
+      const shows = await getMusicals();
+      const slice = shows.slice(0, 20);
+      carouselShows.value = slice;
+      setCached(slice);   // 写缓存
+    }
+    // ❗ 关键：DOM 更新完立即让按钮出现
+    await nextTick(() => {
+      const btnGroup = document.querySelector('.btn-group') as HTMLElement;
+      if (btnGroup) btnGroup.style.opacity = '1';
+    });
+  } finally {
+    loading.value = false;
+  }
+};
+
 // 获取最新资讯列表
 onMounted(async () => {
+  await fetchCarousel();
   try {
     const data = await newsApi.getAllNews()
     newsList.value = data
