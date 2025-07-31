@@ -194,6 +194,7 @@ export default defineComponent({
 
     // 跳转到剧院详情页
     const goToDetail = (id: number) => {
+      console.log('剧院ID:', id);
       router.push(`/theaters/${id}`)
       //或router.push({ name: 'TheaterDetail', params: { id } })
     }

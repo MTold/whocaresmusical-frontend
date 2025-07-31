@@ -72,24 +72,31 @@ export default defineComponent({
 
     const fetchMusicals = async () => {
       try {
-        // 从缓存中获取数据
         const cachedMusicals = localStorage.getItem('musicals');
-        if (cachedMusicals) {
-          const parsedMusicals = JSON.parse(cachedMusicals);
-          const isCacheValid = parsedMusicals.every((musical: any) => musical.hasFutureSchedule !== undefined);
+        const cachedTimestamp = localStorage.getItem('musicalsTimestamp');
+        const cacheExpirationTime = 10 * 60 * 1000; // 缓存有效时间）
 
-          if (isCacheValid) {
+        if (cachedMusicals && cachedTimestamp) {
+          const currentTime = new Date().getTime();
+          const timeDifference = currentTime - parseInt(cachedTimestamp);
+
+          // 如果缓存过期，则重新请求数据
+          if (timeDifference < cacheExpirationTime) {
+            const parsedMusicals = JSON.parse(cachedMusicals);
             musicals.value = parsedMusicals;
             musicals.value = sortByName(musicals.value);
             loading.value = false;
             return;
           }
         }
+
+        // 如果缓存无效或不存在，重新请求数据
         const response = await musicalApi.getAllMusicals();
         console.log('API 响应:', response);
         musicals.value = response;
         musicals.value = sortByName(musicals.value);
         localStorage.setItem('musicals', JSON.stringify(response));
+        localStorage.setItem('musicalsTimestamp', new Date().getTime().toString()); // 存储当前时间戳
         loading.value = false;
       } catch (error) {
         console.error('获取音乐剧失败:', error);

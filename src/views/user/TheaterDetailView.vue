@@ -22,7 +22,12 @@
           <p>当前位置: 经度: {{ userLocation.lng }}, 纬度: {{ userLocation.lat }}</p>
         </div>
       </div>
+      <MapContainer
+        :mapStyle="{ width: '70%', height: '300px', marginTop: '20px' }"
+        :locationName="'上海' + theater.locationName"
+      />
     </div>
+
 
     <!-- 中间：类型选择栏 + 店铺列表 -->
 
@@ -97,6 +102,7 @@ import { getShopsByTheaterId } from '@/api/shop'
 import { getShopReviewsByShop, createShopReview } from '@/api/shopReview'
 import { ElMessage } from 'element-plus'
 import { LocationInformation } from '@element-plus/icons-vue'
+import MapContainer from "@/components/common/MapContainer.vue";
 
 const route = useRoute()
 const theaterId = Number(route.params.id) // 当前剧院id，确保为数字类型
@@ -299,6 +305,8 @@ const getCurrentLocation = () => {
     )
   })
 }
+
+
 </script>
 
 <style scoped>
@@ -350,6 +358,12 @@ const getCurrentLocation = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+/* 地图容器 */
+.map-container {
+  width: 100%;  /* 宽度占满父容器 */
+  height: 300px;  /* 设置地图高度，可以根据需要调整 */
+  margin-top: 20px;  /* 在按钮和地图之间添加间距 */
 }
 
 /* 中间区域 */
@@ -422,8 +436,10 @@ const getCurrentLocation = () => {
   flex-direction: column;
   padding: 30px;
   gap: 18px;
-  overflow-y: auto;
+  overflow-y: auto; /* 启用竖直滚动 */
+  max-height: 750px; /* 限制最大高度，调整为适合的值 */
 }
+
 .shop-card {
   display: flex;
   align-items: center;
@@ -703,5 +719,11 @@ const getCurrentLocation = () => {
   text-align: right;
   color: #888;
   font-size: 0.9em;
+}
+
+.map-container {
+  width: 50%;
+  height:100px;
+  margin-top: 50px;
 }
 </style>
