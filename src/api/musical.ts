@@ -79,4 +79,6 @@ export default {
   getAllMusicals,
   getMusicalById,
   getTopRatedMusicals,
+  updateMusical,
+  deleteTheater,
 };

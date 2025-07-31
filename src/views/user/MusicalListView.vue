@@ -11,6 +11,16 @@
           @keyup.enter="onSearch"
         />
         <button class="search-btn" @click="onSearch">搜索</button>
+
+        <!-- 筛选勾选框：只看有未来演出计划的 -->
+        <div class="filter">
+          <input
+            type="checkbox"
+            v-model="showFutureOnly"
+            id="futureScheduleFilter"
+          />
+          <label for="futureScheduleFilter">只看有未来演出计划的</label>
+        </div>
       </div>
 
       <!-- 显示剧目列表 -->
@@ -58,33 +68,59 @@ export default defineComponent({
     const inputQuery = ref(''); // 输入框内容
     const searchQuery = ref(''); // 搜索内容
     const errorMessage = ref(''); // 错误信息
+    const showFutureOnly = ref(false); // 控制筛选：只看有未来演出计划的
 
-    // 获取所有音乐剧数据
     const fetchMusicals = async () => {
       try {
+        // 从缓存中获取数据
         const cachedMusicals = localStorage.getItem('musicals');
         if (cachedMusicals) {
-          musicals.value = JSON.parse(cachedMusicals); // 使用缓存数据
-          loading.value = false;
-        } else {
-          // 如果缓存没有，获取数据并缓存
-          const response = await musicalApi.getAllMusicals();
-          musicals.value = response;
-          localStorage.setItem('musicals', JSON.stringify(response));
-          loading.value = false;
+          const parsedMusicals = JSON.parse(cachedMusicals);
+          const isCacheValid = parsedMusicals.every((musical: any) => musical.hasFutureSchedule !== undefined);
+
+          if (isCacheValid) {
+            musicals.value = parsedMusicals;
+            musicals.value = sortByName(musicals.value);
+            loading.value = false;
+            return;
+          }
         }
+        const response = await musicalApi.getAllMusicals();
+        console.log('API 响应:', response);
+        musicals.value = response;
+        musicals.value = sortByName(musicals.value);
+        localStorage.setItem('musicals', JSON.stringify(response));
+        loading.value = false;
       } catch (error) {
         console.error('获取音乐剧失败:', error);
-        errorMessage.value = '无法加载音乐剧数据，请稍后再试。'; // 错误提示
+        errorMessage.value = '无法加载音乐剧数据，请稍后再试。';
       }
     };
 
-    // 过滤音乐剧
+
+    // 按名称首字母排序
+    const sortByName = (musicals: any[]) => {
+      return musicals.sort((a, b) => {
+        return a.name.localeCompare(b.name); // 按名称进行排序
+      });
+    };
+
     const filteredMusicals = computed(() => {
-      return musicals.value.filter((musical) =>
-        musical.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-      );
+      console.log("筛选前的剧目：", musicals.value);
+      return musicals.value.filter((musical) => {
+        const matchesSearch = musical.name.toLowerCase().includes(searchQuery.value.toLowerCase());
+
+        // 检查 hasFutureSchedule 字段，如果没有，则默认为 '0'（false）
+        const hasFutureScheduleBool = musical.hasFutureSchedule === '1'; // 如果是 '1'，则为 true，否则为 false
+        const matchesFutureSchedule = showFutureOnly.value ? hasFutureScheduleBool : true;
+
+        // 添加检查日志，确认 hasFutureSchedule 字段
+        //console.log(`剧目: ${musical.name}, 筛选: ${matchesSearch}, 未来演出: ${musical.hasFutureSchedule}`);
+
+        return matchesSearch && matchesFutureSchedule;
+      });
     });
+
 
     // 搜索方法
     const onSearch = () => {
@@ -108,6 +144,7 @@ export default defineComponent({
       goToDetail,
       errorMessage,
       loading,
+      showFutureOnly,
       onSearch
     };
   }
@@ -138,7 +175,7 @@ export default defineComponent({
   padding: 10px;
   border-radius: 5px;
   border: 1px solid #ddd;
-  width: 1000px;
+  width: 700px;
   font-size: 20px;
 }
 
@@ -155,6 +192,13 @@ export default defineComponent({
 
 .search-btn:hover {
   background-color: #d1b295;
+}
+
+/* 筛选框样式 */
+.filter {
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
 }
 
 .shows-gallery {
@@ -207,10 +251,27 @@ export default defineComponent({
 }
 
 .loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  color: #666;
+  font-size: 18px;
+}
+
+.loading-message {
   text-align: center;
   padding: 40px;
   font-size: 18px;
   color: #666;
+}
+
+.loading-gif {
+  display: block;
+  margin: 20px auto;
+  width: 50px;
+  height: 50px;
 }
 
 @media (max-width: 768px) {
