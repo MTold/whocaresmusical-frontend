@@ -31,7 +31,7 @@ const loadMap = () => {
   };
 
   AMapLoader.load({
-    key: "e274919610e064e79a094317c4023d8c", // 申请好的Web端开发者Key
+    key: "e274919610e064e79a094317c4023d8c",
     version: "2.0", // 指定要加载的 JSAPI 的版本
     plugins: ["AMap.Scale", "AMap.Geocoder"], // 使用的插件
   })

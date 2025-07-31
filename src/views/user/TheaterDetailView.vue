@@ -17,20 +17,38 @@
       </div>
       <!-- 获取当前位置按钮 -->
       <div class="location-info">
-        <button @click="getUserLocation">获取当前位置</button>
+        <button @click="startNavigation">一键导航</button>
+        <div v-if="loading.value" class="loading-message">
+          正在获取位置...
+        </div>
         <div v-if="userLocation.lat && userLocation.lng">
-          <p>当前位置: 经度: {{ userLocation.lng }}, 纬度: {{ userLocation.lat }}</p>
         </div>
       </div>
+      <!-- 导航方式选择弹窗 -->
+      <el-dialog
+        v-model="showNavOptions"
+        title="选择导航方式"
+        width="400px"
+      >
+        <div class="nav-options-modal">
+          <el-radio-group v-model="navOption" class="nav-radio-group">
+            <el-radio label="car">开车</el-radio>
+            <el-radio label="bus">公交</el-radio>
+            <el-radio label="walk">步行</el-radio>
+          </el-radio-group>
+          <div class="dialog-footer">
+            <el-button @click="showNavOptions = false">取消</el-button>
+            <el-button type="primary" @click="confirmNavigation">确认导航</el-button>
+          </div>
+        </div>
+      </el-dialog>
       <MapContainer
         :mapStyle="{ width: '70%', height: '300px', marginTop: '20px' }"
         :locationName="'上海' + theater.locationName"
       />
     </div>
 
-
     <!-- 中间：类型选择栏 + 店铺列表 -->
-
     <div class="center-panel">
       <!-- 棕色竖线分割 -->
       <div class="divider"></div>
@@ -38,12 +56,7 @@
         <div
           v-for="(type, idx) in shopCategorys"
           :key="type.value"
-          :class="[
-            'sidebar-item',
-            { active: selectedCategory === type.value },
-            idx === 0 ? 'first' : '',
-            idx === shopCategorys.length - 1 ? 'last' : '',
-          ]"
+          :class="[ 'sidebar-item', { active: selectedCategory === type.value }, idx === 0 ? 'first' : '', idx === shopCategorys.length - 1 ? 'last' : '' ]"
           @click="selectedCategory = type.value"
         >
           <span class="vertical-text">{{ type.label }}</span>
@@ -95,21 +108,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { getTheaterById } from '@/api/theater'
 import { getShopsByTheaterId } from '@/api/shop'
-import { getShopReviewsByShop, createShopReview } from '@/api/shopReview'
+import { createShopReview, getShopReviewsByShop } from '@/api/shopReview'
 import { ElMessage } from 'element-plus'
 import { LocationInformation } from '@element-plus/icons-vue'
-import MapContainer from "@/components/common/MapContainer.vue";
+import MapContainer from '@/components/common/MapContainer.vue'
 
 const route = useRoute()
-const theaterId = Number(route.params.id) // 当前剧院id，确保为数字类型
+const theaterId = Number(route.params.id)
 const errorMessage = ref('')
 const loading = ref(true)
 
-// 定义剧院对象
 const theater = ref({
   id: theaterId,
   name: '',
@@ -118,7 +130,8 @@ const theater = ref({
   longitude: 0,
   imageUrl: '',
 })
-// 剧院信息，从后端接口获取
+
+// 获取剧院信息
 const theaterInformation = async () => {
   try {
     const data = await getTheaterById(theaterId)
@@ -128,7 +141,7 @@ const theaterInformation = async () => {
       locationName: data.locationName,
       latitude: data.latitude,
       longitude: data.longitude,
-      imageUrl: data.imageUrl || '', // 确保有默认值
+      imageUrl: data.imageUrl || '',
     }
   } catch (e) {
     console.error('获取剧院信息失败:', e)
@@ -138,7 +151,7 @@ const theaterInformation = async () => {
   }
 }
 
-// 店铺数据，从后端接口获取
+// 店铺数据获取
 const fetchShops = async () => {
   try {
     shops.value = await getShopsByTheaterId(theaterId)
@@ -150,65 +163,51 @@ const fetchShops = async () => {
   }
 }
 
-//页面加载时获取剧院和店铺信息
+// 页面加载时获取剧院和店铺信息
 onMounted(() => {
   theaterInformation()
   fetchShops()
 })
 
-// 店铺类型
 const shopCategorys = [
   { label: '周边美食', value: 1 },
   { label: '周边住宿', value: 2 },
   { label: '周边游玩', value: 3 },
 ]
-const selectedCategory = ref(1) // 默认选中第一个类型
+const selectedCategory = ref(1)
 
-// 店铺数据
 const shops = ref([
   {
     shopId: 0,
     name: '',
     address: '',
-    category: 1, // 1: 美食, 2: 住宿, 3: 游玩
+    category: 1,
     image: '',
   },
 ])
 
-// 当前类型下的店铺
 const filteredShops = computed(() =>
   shops.value.filter((s) => s.category === selectedCategory.value),
 )
 
-// 评价相关响应式数据
-const shopReviews = ref<
-  { id: number; content: string; createdAt: string; username: string; userImage: string | null }[]
->([])
-// 新评价内容
+const shopReviews = ref([])
+
 const newReview = reactive({
   id: null,
   content: '',
 })
 
-// 选中的店铺
-const selectedShop = ref<(typeof shops.value)[0] | null>(null)
-// 选择店铺时加载评价
-async function selectShop(shop: (typeof shops.value)[0]) {
-  console.log('选择店铺:', shop)
+const selectedShop = ref(null)
+
+async function selectShop(shop) {
   selectedShop.value = shop
   newReview.content = ''
   await fetchReviews(shop.id)
 }
 
-const fetchReviews = async (shopId: number) => {
+const fetchReviews = async (shopId) => {
   try {
-    console.log('点击店铺获取评价数据：店铺id:', shopId)
-    console.log('', shopId)
     const res = await getShopReviewsByShop(shopId)
-    console.log('res is ', res)
-
-    // 假设后端返回的数据结构为 { code: 0, data: [...], message: 'success' }
-    // 其中 data 字段包含评论数据
     if (res.code === 200 && Array.isArray(res.data)) {
       shopReviews.value = res.data
     } else {
@@ -225,21 +224,12 @@ const submitReview = async () => {
     ElMessage.error('请选择店铺并输入评价内容')
     return
   }
-  console.log('提交评价 选择的店铺 ', selectedShop.value)
   try {
-    console.log('开始提交评价:', {
-      shopId: selectedShop.value.id,
-      content: newReview.content,
-    })
-
     const response = await createShopReview({
       shopId: selectedShop.value.id,
       content: newReview.content,
     })
 
-    console.log('评价提交成功:', response)
-    clearReview()
-    // 立即添加到当前列表，避免等待重新加载
     const newReviewItem = {
       id: response.id,
       content: response.content,
@@ -250,20 +240,13 @@ const submitReview = async () => {
     }
 
     shopReviews.value.push(newReviewItem)
-    // await fetchReviews(selectedShop.value.id) // 重新加载评价
-  } catch (error: any) {
-    console.error('提交评价失败:', error)
+  } catch (error) {
     const errorMessage = error.response?.data?.message || error.message || '未知错误'
     ElMessage.error('评价提交失败: ' + errorMessage)
   }
 }
 
-const clearReview = () => {
-  newReview.content = ''
-}
-
-// 日期格式化函数
-const formatDate = (dateString: string) => {
+const formatDate = (dateString) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('zh-CN', {
     year: 'numeric',
@@ -273,13 +256,12 @@ const formatDate = (dateString: string) => {
     minute: '2-digit',
   })
 }
-// 定义变量保存用户位置信息
-const userLocation = ref<{ lat: number; lng: number }>({
-  lat: 0,
-  lng: 0,
-})
 
-// 获取用户位置
+// 导航相关
+const userLocation = ref({ lat: 0, lng: 0 })
+const showNavOptions = ref(false)
+const navOption = ref('car')
+
 const getUserLocation = async () => {
   try {
     const position = await getCurrentLocation()
@@ -289,7 +271,6 @@ const getUserLocation = async () => {
   }
 }
 
-// 获取当前位置的函数
 const getCurrentLocation = () => {
   return new Promise<{ lat: number; lng: number }>((resolve, reject) => {
     navigator.geolocation.getCurrentPosition(
@@ -306,10 +287,36 @@ const getCurrentLocation = () => {
   })
 }
 
+const startNavigation = async () => {
+  loading.value = true;  // 开始加载
+  await getUserLocation();
 
+  if (!userLocation.value.lat || !userLocation.value.lng) {
+    ElMessage.error('无法获取当前位置，请稍后再试');
+    loading.value = false;  // 结束加载
+    return;
+  }
+  showNavOptions.value = true;
+  loading.value = false;  // 结束加载
+}
+
+const confirmNavigation = async () => {
+  const navUrl = `https://ditu.amap.com/dir?from[lnglat]=${userLocation.value.lng},${userLocation.value.lat}&to[lnglat]=${theater.value.longitude},${theater.value.latitude}&to[name]=${theater.value.name}&type=${navOption.value}&policy=1`
+  window.open(navUrl, '_blank', 'noopener,noreferrer')
+  showNavOptions.value = false
+}
 </script>
 
 <style scoped>
+.theater-detail-layout {
+  display: flex;
+  width: 100vw;
+  min-height: 100vh;
+  background: #fafaf8;
+  box-sizing: border-box;
+  padding: 40px 0;
+}
+
 .theater-detail-layout {
   display: flex;
   width: 100vw;
@@ -358,12 +365,6 @@ const getCurrentLocation = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-/* 地图容器 */
-.map-container {
-  width: 100%;  /* 宽度占满父容器 */
-  height: 300px;  /* 设置地图高度，可以根据需要调整 */
-  margin-top: 20px;  /* 在按钮和地图之间添加间距 */
 }
 
 /* 中间区域 */
@@ -721,9 +722,43 @@ const getCurrentLocation = () => {
   font-size: 0.9em;
 }
 
-.map-container {
-  width: 50%;
-  height:100px;
-  margin-top: 50px;
+.nav-options-modal {
+  padding: 20px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.nav-radio-group {
+  margin: 20px 0;
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+}
+
+.nav-radio-group .el-radio {
+  display: flex; /* 使用 flexbox 布局 */
+  justify-content: center; /* 水平居中 */
+  gap: 15px; /* 按钮间的间距 */
+}
+
+.nav-radio-group .el-radio:hover {
+  background-color: #f5f7fa;
+}
+
+.nav-radio-group .el-radio.is-checked {
+  background-color: #ecf5ff;
+  color: #d7c2ae;
+}
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+.loading-message {
+  color: #888;
+  font-size: 14px;
+  margin-top: 10px;
 }
 </style>
