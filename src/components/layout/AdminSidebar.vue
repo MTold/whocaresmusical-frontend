@@ -40,6 +40,11 @@
         <span>剧院信息管理</span>
       </el-menu-item>
 
+      <el-menu-item class="sidebar-item" index="/admin/shops">
+        <el-icon><OfficeBuilding /></el-icon>
+        <span>店铺管理</span>
+      </el-menu-item>
+
       <el-menu-item class="sidebar-item" index="/admin/reviews">
         <el-icon><ChatLineRound /></el-icon>
         <span>评价管理</span>

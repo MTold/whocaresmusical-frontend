@@ -120,6 +120,11 @@ const routes = [
         component: () => import('@/views/admin/TheaterManagerView.vue'),
       },
       {
+        path: 'shops',
+        name: 'ShopManager',
+        component: () => import('@/views/admin/ShopManagerView.vue'),
+      },
+      {
         path: 'messages',
         name: 'MessageManager',
         component: () => import('@/views/admin/MessageManagerView.vue'),
