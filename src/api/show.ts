@@ -50,9 +50,45 @@ export const getShowsByTheaterId = async (theaterId: number) => {
   }
 };
 
+// 创建排期
+export const createShow = async (musicalId: number, data: any) => {
+  try {
+    const response = await showApi.post(`/musical/${musicalId}`, data);
+    return response.data;
+  } catch (error) {
+    console.error(`Error creating show for musical ${musicalId}:`, error);
+    throw error;
+  }
+};
+
+// 更新排期
+export const updateShow = async (showId: number, data: any) => {
+  try {
+    const response = await showApi.put(`/${showId}`, data);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating show with id ${showId}:`, error);
+    throw error;
+  }
+};
+
+// 删除排期
+export const deleteShow = async (showId: number) => {
+  try {
+    const response = await showApi.delete(`/${showId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting show with id ${showId}:`, error);
+    throw error;
+  }
+};
+
 export default {
   getAllShows,
   getMusicals,
   getShowsByMusicalId,
   getShowsByTheaterId,
+  createShow,
+  updateShow,
+  deleteShow,
 };

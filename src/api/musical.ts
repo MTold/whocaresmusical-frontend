@@ -41,7 +41,7 @@ export const getAllMusicals = async () => {
 };
 
 // 根据 id 查询指定的音乐剧
-export const getMusicalById = async (id:number) => {
+export const getMusicalById = async (id: number) => {
   try {
     const response = await musicalApi.get(`/${id}`);
     return response.data || null;
@@ -62,16 +62,38 @@ export const getTopRatedMusicals = async () => {
   }
 };
 
+// 更新音乐剧
 export const updateMusical = async (id: number, data: any) => {
-  const res = await musicalApi.put(`/${id}`, data);
-  return res.data;
+  try {
+    const res = await musicalApi.put(`/${id}`, data);
+    return res.data;
+  } catch (error) {
+    console.error('Error updating musical:', error);
+    throw error;
+  }
 };
 
-export const deleteTheater = async (id: number) => {
-  const res = await musicalApi.delete(`/${id}`);
-  return res.data;
+// 删除剧目
+export const deleteMusical = async (id: number) => {
+  try {
+    const res = await musicalApi.delete(`/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error(`Error deleting musical with id ${id}:`, error);
+    throw error;
+  }
 };
 
+// 添加剧目
+export const createMusical = async (data: any) => {
+  try {
+    const res = await musicalApi.post('', data);
+    return res.data;
+  } catch (error) {
+    console.error('Error creating musical:', error);
+    throw error;
+  }
+};
 
 export default {
   getOriginalMusicals,
@@ -80,5 +102,6 @@ export default {
   getMusicalById,
   getTopRatedMusicals,
   updateMusical,
-  deleteTheater,
+  deleteMusical,
+  createMusical,
 };
