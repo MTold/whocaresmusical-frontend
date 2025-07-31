@@ -1,8 +1,20 @@
 <template>
-  <div class="musical-manager">
-    <h1>剧目信息管理</h1>
+  <div class="admin-title-container">
+    <h1 class="admin-page-title">剧目信息管理</h1>
+  </div>
 
-    <el-table :data="paginatedMusicals" style="width: 100%;" border>
+  <div class="admin-page-container">
+
+    <div class="admin-table-wrapper">
+      <el-table
+        v-loading="loading"
+        :data="paginatedMusicals"
+        style="width: 100%;"
+        border
+        :fit="true"
+        highlight-current-row
+        empty-text="暂无剧目信息"
+      >
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="name" label="名称" />
       <el-table-column prop="info" label="简介" />
@@ -17,10 +29,11 @@
           <el-button size="small" type="danger" @click="deleteMusical(scope.row.id)">删除</el-button>
         </template>
       </el-table-column>
-    </el-table>
+      </el-table>
+    </div>
 
     <!-- 分页 -->
-    <div class="pagination-container">
+    <div class="admin-pagination-wrapper">
       <el-pagination
         background
         layout="prev, pager, next"
@@ -60,6 +73,7 @@ import musicalApi from '@/api/musical'
 const musicals = ref<any[]>([])
 const editDialogVisible = ref(false)
 const editForm = ref<any>({})
+const loading = ref(true)
 
 // 分页相关
 const currentPage = ref(1)
@@ -76,10 +90,13 @@ const handlePageChange = (page: number) => {
 
 // 获取全部剧目
 const fetchMusicals = async () => {
+  loading.value = true
   try {
     musicals.value = await musicalApi.getAllMusicals()
   } catch (error) {
     ElMessage.error('加载剧目失败')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -121,15 +138,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.musical-manager {
-  padding: 20px;
-  position: absolute;
-  top: 15px;
-  left: 22%;
-  width: 70%;
-}
-.pagination-container {
-  margin-top: 20px;
-  text-align: center;
-}
+/* 使用全局admin-common.css样式 */
 </style>

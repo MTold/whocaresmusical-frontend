@@ -5,6 +5,13 @@
     <div class="carousel-section">
       <!-- 椭圆形轮播区域 -->
       <div class="banner">
+        <!-- 1. 加载占位 -->
+        <div v-if="loading" class="loading">
+          <p>精彩内容加载中...</p>
+          <img src="https://5b0988e595225.cdn.sohucs.com/images/20180809/05aa0fba1e844ad2bd4ee21c32d70099.gif" alt="加载中..." class="loading-gif" />
+        </div>
+
+        <!-- 2. 真正的轮播（loading 为 false 时才渲染） -->
         <div class="img-list img-wrapper" ref="imgList">
           <router-link
             v-for="(show, index) in carouselShows"
@@ -58,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, nextTick } from 'vue'
+import { onMounted, ref, nextTick, defineComponent, computed} from 'vue'
 import { useRouter } from 'vue-router'
 import { newsApi } from '@/api/admin/news'
 import type { News } from '@/types/news'
@@ -101,6 +108,8 @@ const handleImageLoad = (event: Event) => {
   // console.log('图片加载成功:', (event.target as HTMLImageElement).src)
 }
 
+const loading = ref(true)   // 默认先显示 loading
+
 // 获取轮播数据
 onMounted(async () => {
   try {
@@ -118,16 +127,19 @@ onMounted(async () => {
 
     // 初始化虚拟索引数组
     virtualIndexArray = Array.from({ length: selectedShows.length }, (_, i) => i)
-
+    await fetchCarousel();                // 1. 拿到数据
     // 初始化轮播
-    await nextTick()
+    await nextTick() // 2. DOM 渲染完毕
     console.log('轮播数据已设置，开始初始化')
-    initCarousel()
+    initCarousel()// 3. 再初始化轮播 // 此时按钮和轮播都已就绪
   } catch (error) {
     console.error('Failed to fetch shows:', error)
     ElMessage.error('加载剧目失败，使用备用数据')
-    await nextTick()
-    initCarousel()
+
+
+  }
+  finally {
+    loading.value = false   // 数据拿到后隐藏 loading
   }
 })
 
@@ -166,6 +178,7 @@ const initCarousel = () => {
       btnGroup.style.opacity = '1'
     }
   }, animationTime * 1000)
+
 
   console.log('轮播初始化完成')
 }
@@ -208,7 +221,7 @@ const validateCarouselState = () => {
   return true
 }
 
-// 处理上一张
+// 处理下一张
 const handleNext = () => {
   if (isAnimating) return
   isAnimating = true
@@ -266,7 +279,7 @@ const handleNext = () => {
   }, animationTime * 1000)
 }
 
-// 处理下一张
+// 处理上一张
 const handlePrev = () => {
   if (isAnimating) return
   isAnimating = true
@@ -342,8 +355,47 @@ const formatDate = (dateStr: string) => {
   }
 }
 
+// 缓存工具：key、数据、有效期(ms)
+const CACHE_KEY = 'home-carousel';
+const CACHE_TIME = 10 * 60 * 1000;  // 10 分钟
+
+const getCached = () => {
+  const str = localStorage.getItem(CACHE_KEY);
+  if (!str) return null;
+  const { data, timestamp } = JSON.parse(str);
+  return Date.now() - timestamp < CACHE_TIME ? data : null;
+};
+
+const setCached = (data: any[]) => {
+  localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+};
+
+// 获取轮播数据（带缓存）
+const fetchCarousel = async () => {
+  try {
+    // 1. 先读缓存
+    const cached = getCached();
+    if (cached) {
+      carouselShows.value = cached;
+      } else {
+      const shows = await getMusicals();
+      const slice = shows.slice(0, 20);
+      carouselShows.value = slice;
+      setCached(slice);   // 写缓存
+    }
+    // ❗ 关键：DOM 更新完立即让按钮出现
+    await nextTick(() => {
+      const btnGroup = document.querySelector('.btn-group') as HTMLElement;
+      if (btnGroup) btnGroup.style.opacity = '1';
+    });
+  } finally {
+    loading.value = false;
+  }
+};
+
 // 获取最新资讯列表
 onMounted(async () => {
+  await fetchCarousel();
   try {
     const data = await newsApi.getAllNews()
     newsList.value = data
@@ -358,7 +410,6 @@ onMounted(async () => {
 /* 根样式 */
 .home-view {
   background: #fafaf8;/* 设置背景颜色 */
-  min-height: 100vh;
   padding-bottom: 30px;
   position: relative;
 }
@@ -402,8 +453,8 @@ onMounted(async () => {
   position: absolute;
   width: 100%;
   height: 600px;
-
-  transform: translate(13.39vw, 0);
+  /*transform: translate(-50%);*/
+  transform: translate(8.8%, 0);
   animation: admission 1.5s;
 }
 
@@ -638,5 +689,16 @@ onMounted(async () => {
   .banner .img-wrapper .img-box .info p {
     font-size: 0.9rem;
   }
+}
+/*加载信息*/
+.loading {
+  display: flex;
+  margin: 18%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  color: #666;
+  font-size: 18px;
 }
 </style>

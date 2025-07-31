@@ -17,7 +17,30 @@
       <button @click="sortByDistance">距离优先</button>
     </div>
 
+    <!-- 提示信息 -->
+    <div v-if="isSorting" class="loading-message">
+      <p>正在按距离排序...</p>
+    </div>
+
+    <!-- 错误提示信息 -->
+    <div v-if="errorMessage" class="error-message">
+      <p>{{ errorMessage }}</p>
+    </div>
+
     <div class="theaters-gallery">
+
+      <!--加载提示 -->
+      <div v-if="loading" class="loading">
+        <p>内容加载中...</p>
+        <!-- 加载的GIF图 -->
+        <img src="@/assets/loading.gif" alt="加载中..." class="loading-gif"/>
+      </div>
+
+      <!-- 只有在没有数据且加载完成时才显示"没有查找到该剧院" -->
+      <div v-else-if="filteredTheaters.length === 0">
+        <p>没有查找到该剧院。</p>
+      </div>
+
       <div v-if="filteredTheaters.length > 0" class="theaters-grid">
         <div
           v-for="theater in filteredTheaters"
@@ -28,10 +51,6 @@
           <img :src="theater.imageUrl" alt="Theater image" class="theater-image" />
           <p class="theater-name">{{ theater.name }}</p>
         </div>
-      </div>
-      <!-- 无数据时提示 -->
-      <div v-else>
-        <p>没有查找到该剧院。</p>
       </div>
     </div>
   </div>
@@ -62,33 +81,42 @@ export default defineComponent({
     const errorMessage = ref('')
     const loading = ref(true)
     const userLocation = ref<{ lat: number; lng: number }>({ lat: 0, lng: 0 })
+    const isSorting = ref(false)
 
     // 获取用户位置
     const getUserLocation = async () => {
       try {
+        console.log("尝试获取用户位置..."); // 输出调试信息
         const position = await getCurrentLocation()
+        console.log("获取到的用户位置:", position) // 输出获取的用户位置信息
         userLocation.value = position
+        errorMessage.value = ''
       } catch (e) {
-        console.error('无法获取当前位置:', e)
+        console.error('无法获取当前位置:', e) // 输出错误信息
+        errorMessage.value = '获取用户位置失败，请检查浏览器权限设置。'
       }
     }
 
     // 获取当前位置的函数
     const getCurrentLocation = () => {
       return new Promise<{ lat: number; lng: number }>((resolve, reject) => {
+        console.log("执行获取位置信息...") // 输出调试信息，确保代码到达此处
         navigator.geolocation.getCurrentPosition(
           (position) => {
+            console.log("成功获取位置:", position.coords) // 成功后输出位置信息
             resolve({
               lat: position.coords.latitude,
               lng: position.coords.longitude,
             })
           },
           (error) => {
+            console.error("定位失败:", error) // 定位失败时输出错误信息
             reject(error)
           }
         )
       })
     }
+
 
     // Haversine 公式计算两点之间的距离（单位：公里）
     const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -106,12 +134,22 @@ export default defineComponent({
       return R * c
     }
 
-
     // 按距离排序
     const sortByDistance = async () => {
+      isSorting.value = true // 开始排序时，显示加载提示
       await getUserLocation() // 获取用户位置
+      console.log('获取的用户位置:', userLocation.value)
 
-      theaters.value.sort((a, b) => {
+      // 如果获取到的用户位置无效，则显示错误信息并停止排序
+      if (userLocation.value.lat === 0 && userLocation.value.lng === 0) {
+        console.error("未能获取到有效的用户位置")
+        errorMessage.value = '获取用户位置失败，请检查浏览器权限设置。'
+        isSorting.value = false // 排序失败时，停止显示加载提示
+        return
+      }
+
+      // 如果获取到有效位置，执行排序
+      theaters.value = theaters.value.sort((a, b) => {
         const distanceA = calculateDistance(
           userLocation.value.lat, userLocation.value.lng, a.latitude, a.longitude
         )
@@ -120,7 +158,13 @@ export default defineComponent({
         )
         return distanceA - distanceB
       })
+
+      console.log('排序后的剧院列表:', theaters.value)
+      isSorting.value = false // 排序完成后，停止显示加载提示
     }
+
+
+
 
     // 剧院数据，从后端接口获取
     const fetchTheaters = async () => {
@@ -144,10 +188,13 @@ export default defineComponent({
     // 搜索方法，将输入框内容赋值给实际搜索内容
     const onSearch = () => {
       searchQuery.value = inputQuery.value
+      // 如果和后端联动，这里可以调用API获取剧院列表
+      // 例如：await fetchTheatersFromAPI(searchQuery.value)
     }
 
     // 跳转到剧院详情页
     const goToDetail = (id: number) => {
+      console.log('剧院ID:', id);
       router.push(`/theaters/${id}`)
       //或router.push({ name: 'TheaterDetail', params: { id } })
     }
@@ -162,6 +209,9 @@ export default defineComponent({
       goToDetail, // 跳转详情方法
       fetchTheaters,
       sortByDistance,
+      isSorting,
+      loading,
+      errorMessage,
     }
   },
 })
@@ -176,6 +226,32 @@ export default defineComponent({
   align-items: center;
   min-height: 100vh;
 }
+
+/*加载信息*/
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  color: #666;
+  font-size: 18px;
+}
+
+.loading-message {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #666;
+}
+
+.loading-gif {
+  display: block;
+  margin: 20px auto;
+  width: 50px;
+  height: 50px;
+}
+
 
 /* 搜索栏样式 */
 .header {
@@ -193,7 +269,8 @@ export default defineComponent({
   border-radius: 5px;
   border: 1px solid #ddd;
   width: 1000px;
-  font-size: 20px;
+  font-size: 15px;
+  color: #666;
 }
 
 /* 搜索按钮样式（浅咖啡色） */
@@ -223,7 +300,7 @@ export default defineComponent({
   grid-template-columns: repeat(auto-fill, minmax(250px, 250px));
   justify-content: center;
   gap: 20px;
-  margin-bottom:80px;
+  margin-bottom: 50px;
 }
 
 /* 单个剧院卡片样式 */
@@ -234,7 +311,7 @@ export default defineComponent({
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
   width: 250px;
-  height: 220px;
+  height: 160px;
   display: flex;
   flex-direction: column;
 }
@@ -245,8 +322,9 @@ export default defineComponent({
 /* 剧院图片样式 */
 .theater-image {
   width: 100%;
-  height: 180px;
+  height: 120px;
   object-fit: cover;
+  object-position: center;
 }
 
 /* 剧院名称样式 */
@@ -255,8 +333,13 @@ export default defineComponent({
   font-size: 16px;
   font-weight: bold;
   color: #333;
-  margin-top: 0;
+  margin-top: auto;
+  margin-bottom: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 /* 距离排序按钮样式 */
 .distance-sort {
   margin-bottom:50px;
@@ -272,7 +355,7 @@ export default defineComponent({
   border-radius: 10px;
   cursor: pointer;
   transition: background 0.3s ease, transform 0.2s ease-in-out;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .distance-sort button:hover {
@@ -288,6 +371,14 @@ export default defineComponent({
   outline: none; /* 去掉聚焦时的默认边框 */
   box-shadow: 0 0 0 4px rgba(238, 143, 45, 0.5); /* 聚焦时添加光晕效果 */
 }
+
+.loading-message {
+  text-align: center;
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
 /* 响应式布局 */
 @media (max-width: 768px) {
   .header {

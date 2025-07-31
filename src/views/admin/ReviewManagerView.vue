@@ -1,10 +1,12 @@
 <template>
-  <div class="review-manager">
-    <!-- 标题 -->
-    <h1 class="page-title">评价管理</h1>
+  <div class="admin-title-container">
+    <h1 class="admin-page-title">评价管理</h1>
+  </div>
+
+  <div class="admin-page-container">
 
     <!-- 顶部功能区 -->
-    <div class="control-area">
+    <div class="admin-control-area">
       <!-- Tab切换 -->
       <el-tabs v-model="activeTab" @tab-change="handleTabChange">
         <el-tab-pane label="已通过" name="passed" />
@@ -12,10 +14,10 @@
       </el-tabs>
 
       <!-- 占位空白 -->
-      <span class="divider"></span>
+      <span class="admin-divider"></span>
 
       <!-- 搜索框 -->
-      <div class="search-wrapper">
+      <div class="admin-search-wrapper">
         <el-input
           v-model="keyword"
           placeholder="请输入关键字（剧目/内容）"
@@ -28,7 +30,7 @@
     </div>
 
     <!-- 表格区域 -->
-    <div class="table-wrapper">
+    <div class="admin-table-wrapper">
       <el-table
         :data="tableData"
         border
@@ -119,41 +121,41 @@
   destroy-on-close
   custom-class="review-dialog-bg"
 >
-  <div class="review-detail">
-    <div class="detail-item">
+  <div class="admin-detail-dialog">
+    <div class="admin-detail-item">
       <span class="label">编号：</span>
       <span class="value">{{ currentReview.id }}</span>
     </div>
-    <div class="detail-item">
+    <div class="admin-detail-item">
       <span class="label">用户：</span>
       <span class="value">{{ currentReview.username }}</span>
     </div>
-    <div class="detail-item">
+    <div class="admin-detail-item">
       <span class="label">剧目：</span>
       <span class="value">{{ currentReview.performanceName }}</span>
     </div>
-    <div class="detail-item">
+    <div class="admin-detail-item">
       <span class="label">评分：</span>
       <span class="value">{{ currentReview.rating }} 星</span>
     </div>
-    <div class="detail-item content">
+    <div class="admin-detail-item content">
       <span class="label">内容：</span>
       <div class="value">{{ currentReview.content }}</div>
     </div>
-    <div class="detail-item">
+    <div class="admin-detail-item">
       <span class="label">时间：</span>
       <span class="value">{{ formatDate(currentReview.createdAt) }}</span>
     </div>
   </div>
 
   <template #footer>
-    <span class="dialog-footer">
+    <span class="admin-dialog-footer">
       <el-button @click="reviewDetailDialogVisible = false">关闭</el-button>
     </span>
   </template>
 </el-dialog>
       <!-- 分页 -->
-      <div class="pagination-wrapper">
+      <div class="admin-pagination-wrapper">
         <el-pagination
           v-model:current-page="currentPage"
           :page-size="pageSize"
@@ -396,118 +398,5 @@ const reject = async (id) => {
 </script>
 
 <style scoped>
-.review-manager {
-  padding: 20px;
-  background:rgba(255, 255, 255, 0);
-  border-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  position: absolute;
-  top: 60px;
-  left: 15%;
-  right: 20px;
-}
-
-.page-title {
-  font-size: 35px;
-  font-weight: bold;
-  color: #59310e;
-  margin-bottom: 20px;
-  text-align: center;
-  font-family: '宋体', serif;
-}
-
-.control-area {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  /* 占位空白，宽度随意调 */
-.divider {
-  width: 60px;
-  flex-shrink: 0;
-}
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.search-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.search-wrapper .el-input {
-  width: 300px;
-}
-
-.table-wrapper {
-  margin-top: 20px;
-}
-
-.pagination-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-@media (max-width: 768px) {
-  .control-area {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-wrapper {
-    width: 100%;
-    margin-top: 10px;
-  }
-
-  .search-wrapper .el-input {
-    width: 100%;
-  }
-}
-
-
-
-/* ===== 颜色调整 ===== */
-
-.el-tabs__item {
-  color: #bfa074; /* 标签颜色 */
-}
-.el-tabs__item.is-active {
-  color: #a0522d; /* 激活标签颜色 */
-}
-.el-input__inner {
-  border-color: #bfa074; /* 输入框边框颜色 */
-}
-.el-input__inner:focus {
-  border-color: #a0522d; /* 输入框聚焦边框颜色 */
-}
-.el-button {
-  color: #ffffff; /* 按钮文字颜色 */
-  background-color: #e6c9b0; /* 按钮背景颜色 */
-  border-color: #a0522d; /* 按钮边框颜色 */
-}
-.el-button.is-active,
-.el-button:active {
-  background-color: #a0522d; /* 按钮激活背景颜色 */
-  border-color: #7a3a1d; /* 按钮激活边框颜色 */
-}
-.el-button--primary {
-  background-color: #a0522d; /* 主要按钮背景颜色 */
-  border-color: #7a3a1d; /* 主要按钮边框颜色 */
-}
-.el-button--primary.is-active,
-.el-button--primary:active {
-  background-color: #7a3a1d; /* 主要按钮激活背景颜色 */
-  border-color: #59310e; /* 主要按钮激活边框颜色 */
-}
-.el-button--danger {
-  background-color: #e74c3c; /* 危险按钮背景颜色 */
-  border-color: #c0392b; /* 危险按钮边框颜色 */
-}
-.el-button--danger.is-active,
-.el-button--danger:active {
-  background-color: #c0392b; /* 危险按钮激活背景颜色 */
-  border-color: #a93226; /* 危险按钮激活边框颜色 */
-}
+/* 使用全局admin-common.css样式 */
 </style>

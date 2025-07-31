@@ -14,5 +14,17 @@ export const userApi = {
   updateCurrentUser: async (userData: Partial<User>): Promise<User> => {
     const response = await axios.put(`${API_BASE_URL}/user/me`, userData)
     return response.data
+  },
+
+  // 获取所有用户信息
+  getAllUsers: async (): Promise<User[]> => {
+    const response = await axios.get(`${API_BASE_URL}/user/all`)
+    return response.data
+  },
+
+  // 删除用户
+  deleteUser: async (userId: number): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/user/${userId}`)
   }
+
 }

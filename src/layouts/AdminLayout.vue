@@ -1,5 +1,5 @@
 <template>
-  <el-container style="height:100vh;">
+  <el-container style="height:100vh;" :style="{ backgroundImage: `url(${adminBg})` }">
     <!-- 左侧边栏 -->
     <AdminSidebar />
 
@@ -12,13 +12,16 @@
 
 <script setup lang="ts">
 import AdminSidebar from '@/components/layout/AdminSidebar.vue'
+import adminBg from '@/assets/bg.jpg'
 </script>
 
 <style scoped>
 /* 确保容器和侧边栏的样式不会影响主内容区 */
 .el-container {
   display: flex;
-  background: url('/src/assets/login_bg.png') center center / cover no-repeat;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 .el-aside {

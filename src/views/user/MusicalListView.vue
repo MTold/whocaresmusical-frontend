@@ -1,6 +1,7 @@
 <template>
   <keep-alive>
     <div class="all-shows-view">
+      <!-- 搜索区域 -->
       <div class="header">
         <input
           type="text"
@@ -10,14 +11,27 @@
           @keyup.enter="onSearch"
         />
         <button class="search-btn" @click="onSearch">搜索</button>
+
+        <!-- 筛选勾选框：只看有未来演出计划的 -->
+        <div class="filter">
+          <input
+            type="checkbox"
+            v-model="showFutureOnly"
+            id="futureScheduleFilter"
+          />
+          <label for="futureScheduleFilter">只看有未来演出计划的</label>
+        </div>
       </div>
+
+      <!-- 显示剧目列表 -->
       <div class="shows-gallery">
-        <!-- 如果正在加载，则显示"内容加载中" -->
+        <!-- 加载中的提示 -->
         <div v-if="loading" class="loading">
           <p>内容加载中...</p>
+          <img src="@/assets/loading.gif" alt="加载中..." class="loading-gif"/>
         </div>
 
-        <!-- 显示音乐剧列表 -->
+        <!-- 显示剧目 -->
         <div v-if="filteredMusicals.length > 0 && !loading" class="shows-grid">
           <div
             v-for="show in filteredMusicals"
@@ -30,8 +44,8 @@
           </div>
         </div>
 
-        <!-- 显示提示信息 -->
-        <div v-else-if="!loading">
+        <!-- 显示没有找到剧目的提示 -->
+        <div v-else-if="!loading" class="no-shows">
           <p>没有符合条件的剧目。</p>
         </div>
       </div>
@@ -41,57 +55,91 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
 import musicalApi from '@/api/musical';  // 引入API方法
 
 export default defineComponent({
   setup() {
-    const router = useRouter();
-    const musicals = ref<any[]>([]);  // 存储音乐剧列表
-    const errorMessage = ref(''); // 存储错误信息
-    const loading = ref(true); // 控制加载状态
-    const inputQuery = ref('') // 输入框内容
-    const searchQuery = ref('') // 实际用于搜索的内容
+    const router = useRouter()
 
-    // 获取所有音乐剧数据
+    // 数据与状态
+    const musicals = ref<any[]>([]);  // 存储音乐剧列表
+    const loading = ref(true); // 加载状态
+    const inputQuery = ref(''); // 输入框内容
+    const searchQuery = ref(''); // 搜索内容
+    const errorMessage = ref(''); // 错误信息
+    const showFutureOnly = ref(false); // 控制筛选：只看有未来演出计划的
+
     const fetchMusicals = async () => {
       try {
-        // 先尝试从 localStorage 获取缓存数据
         const cachedMusicals = localStorage.getItem('musicals');
-        if (cachedMusicals) {
-          musicals.value = JSON.parse(cachedMusicals); // 如果缓存存在，直接使用缓存数据
-          loading.value = false;
-        } else {
-          // 如果缓存不存在，发起请求获取数据
-          const response = await musicalApi.getAllMusicals();
-          musicals.value = response;
-          localStorage.setItem('musicals', JSON.stringify(response)); // 将数据缓存到 localStorage
-          loading.value = false;
+        const cachedTimestamp = localStorage.getItem('musicalsTimestamp');
+        const cacheExpirationTime = 10 * 60 * 1000; // 缓存有效时间）
+
+        if (cachedMusicals && cachedTimestamp) {
+          const currentTime = new Date().getTime();
+          const timeDifference = currentTime - parseInt(cachedTimestamp);
+
+          // 如果缓存过期，则重新请求数据
+          if (timeDifference < cacheExpirationTime) {
+            const parsedMusicals = JSON.parse(cachedMusicals);
+            musicals.value = parsedMusicals;
+            musicals.value = sortByName(musicals.value);
+            loading.value = false;
+            return;
+          }
         }
+
+        // 如果缓存无效或不存在，重新请求数据
+        const response = await musicalApi.getAllMusicals();
+        console.log('API 响应:', response);
+        musicals.value = response;
+        musicals.value = sortByName(musicals.value);
+        localStorage.setItem('musicals', JSON.stringify(response));
+        localStorage.setItem('musicalsTimestamp', new Date().getTime().toString()); // 存储当前时间戳
+        loading.value = false;
       } catch (error) {
         console.error('获取音乐剧失败:', error);
-        errorMessage.value = '无法加载音乐剧数据，请稍后再试。'; // 错误提示
+        errorMessage.value = '无法加载音乐剧数据，请稍后再试。';
       }
     };
 
-    // 过滤剧院，返回名称包含搜索内容的剧院
-    const filteredMusicals = computed(() => {
-      return musicals.value.filter((musical) =>
-        musical.name.toLowerCase().includes(searchQuery.value.toLowerCase()),
-      )
-    })
 
-    // 搜索方法，将输入框内容赋值给实际搜索内容
+    // 按名称首字母排序
+    const sortByName = (musicals: any[]) => {
+      return musicals.sort((a, b) => {
+        return a.name.localeCompare(b.name); // 按名称进行排序
+      });
+    };
+
+    const filteredMusicals = computed(() => {
+      console.log("筛选前的剧目：", musicals.value);
+      return musicals.value.filter((musical) => {
+        const matchesSearch = musical.name.toLowerCase().includes(searchQuery.value.toLowerCase());
+
+        // 检查 hasFutureSchedule 字段，如果没有，则默认为 '0'（false）
+        const hasFutureScheduleBool = musical.hasFutureSchedule === '1'; // 如果是 '1'，则为 true，否则为 false
+        const matchesFutureSchedule = showFutureOnly.value ? hasFutureScheduleBool : true;
+
+        // 添加检查日志，确认 hasFutureSchedule 字段
+        //console.log(`剧目: ${musical.name}, 筛选: ${matchesSearch}, 未来演出: ${musical.hasFutureSchedule}`);
+
+        return matchesSearch && matchesFutureSchedule;
+      });
+    });
+
+
+    // 搜索方法
     const onSearch = () => {
-      searchQuery.value = inputQuery.value
-    }
+      searchQuery.value = inputQuery.value; // 更新搜索内容
+    };
 
     // 跳转到剧目详情页
     const goToDetail = (id: number) => {
       router.push(`/shows/${id}`);
     };
 
-    // 页面加载时调用API获取剧目数据
+    // 页面加载时获取数据
     onMounted(() => {
       fetchMusicals();
     });
@@ -100,10 +148,10 @@ export default defineComponent({
       inputQuery,
       searchQuery,
       filteredMusicals,
-      musicals,
       goToDetail,
       errorMessage,
-      loading, // 返回loading状态
+      loading,
+      showFutureOnly,
       onSearch
     };
   }
@@ -118,6 +166,7 @@ export default defineComponent({
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
+  margin-bottom: 50px;
 }
 
 .header {
@@ -128,30 +177,36 @@ export default defineComponent({
   max-width: 1200px;
   justify-content: center;
 }
-/* 搜索输入框样式 */
+
 .search-input {
   padding: 10px;
   border-radius: 5px;
   border: 1px solid #ddd;
-  width: 1000px;
-  font-size: 20px;
+  width: 700px;
+  font-size: 15px
 }
 
-/* 搜索按钮样式（浅咖啡色） */
 .search-btn {
   padding: 10px 24px;
   border-radius: 5px;
   border: none;
-  background-color: #e4c9b0; /* 浅咖啡色 */
+  background-color: #e4c9b0;
   color: #5c4326;
   font-size: 20px;
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .search-btn:hover {
   background-color: #d1b295;
 }
 
+/* 筛选框样式 */
+.filter {
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
+}
 
 .shows-gallery {
   width: 100%;
@@ -190,6 +245,9 @@ export default defineComponent({
   color: #333;
   margin-top: auto;
   margin-bottom: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .no-shows {
@@ -200,10 +258,27 @@ export default defineComponent({
 }
 
 .loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  color: #666;
+  font-size: 18px;
+}
+
+.loading-message {
   text-align: center;
   padding: 40px;
   font-size: 18px;
   color: #666;
+}
+
+.loading-gif {
+  display: block;
+  margin: 20px auto;
+  width: 50px;
+  height: 50px;
 }
 
 @media (max-width: 768px) {
