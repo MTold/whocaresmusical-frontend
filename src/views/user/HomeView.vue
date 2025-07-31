@@ -8,7 +8,7 @@
         <!-- 1. 加载占位 -->
         <div v-if="loading" class="loading">
           <p>精彩内容加载中...</p>
-          <img src="@/assets/loading.gif" alt="加载中..." class="loading-gif" />
+          <img src="https://5b0988e595225.cdn.sohucs.com/images/20180809/05aa0fba1e844ad2bd4ee21c32d70099.gif" alt="加载中..." class="loading-gif" />
         </div>
 
         <!-- 2. 真正的轮播（loading 为 false 时才渲染） -->
@@ -370,7 +370,6 @@ onMounted(async () => {
 /* 根样式 */
 .home-view {
   background: #fafaf8;/* 设置背景颜色 */
-  min-height: 100vh;
   padding-bottom: 30px;
   position: relative;
 }
@@ -414,8 +413,8 @@ onMounted(async () => {
   position: absolute;
   width: 100%;
   height: 600px;
-
-  transform: translate(13.39vw, 0);
+  /*transform: translate(-50%);*/
+  transform: translate(8.8%, 0);
   animation: admission 1.5s;
 }
 
@@ -658,7 +657,7 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 80px;
+  height: 100px;
   color: #666;
   font-size: 18px;
 }
