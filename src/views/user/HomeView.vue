@@ -5,6 +5,13 @@
     <div class="carousel-section">
       <!-- 椭圆形轮播区域 -->
       <div class="banner">
+        <!-- 1. 加载占位 -->
+        <div v-if="loading" class="loading">
+          <p>精彩内容加载中...</p>
+          <img src="https://5b0988e595225.cdn.sohucs.com/images/20180809/05aa0fba1e844ad2bd4ee21c32d70099.gif" alt="加载中..." class="loading-gif" />
+        </div>
+
+        <!-- 2. 真正的轮播（loading 为 false 时才渲染） -->
         <div class="img-list img-wrapper" ref="imgList">
           <router-link
             v-for="(show, index) in carouselShows"
@@ -58,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, nextTick } from 'vue'
+import { onMounted, ref, nextTick, defineComponent, computed} from 'vue'
 import { useRouter } from 'vue-router'
 import { newsApi } from '@/api/admin/news'
 import type { News } from '@/types/news'
@@ -101,6 +108,8 @@ const handleImageLoad = (event: Event) => {
   // console.log('图片加载成功:', (event.target as HTMLImageElement).src)
 }
 
+const loading = ref(true)   // 默认先显示 loading
+
 // 获取轮播数据
 onMounted(async () => {
   try {
@@ -128,6 +137,9 @@ onMounted(async () => {
     ElMessage.error('加载剧目失败，使用备用数据')
     await nextTick()
     initCarousel()
+  }
+  finally {
+    loading.value = false   // 数据拿到后隐藏 loading
   }
 })
 
@@ -358,7 +370,6 @@ onMounted(async () => {
 /* 根样式 */
 .home-view {
   background: #fafaf8;/* 设置背景颜色 */
-  min-height: 100vh;
   padding-bottom: 30px;
   position: relative;
 }
@@ -402,8 +413,8 @@ onMounted(async () => {
   position: absolute;
   width: 100%;
   height: 600px;
-
-  transform: translate(13.39vw, 0);
+  /*transform: translate(-50%);*/
+  transform: translate(8.8%, 0);
   animation: admission 1.5s;
 }
 
@@ -638,5 +649,16 @@ onMounted(async () => {
   .banner .img-wrapper .img-box .info p {
     font-size: 0.9rem;
   }
+}
+/*加载信息*/
+.loading {
+  display: flex;
+  margin: 18%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  color: #666;
+  font-size: 18px;
 }
 </style>
