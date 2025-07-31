@@ -1,7 +1,7 @@
 <template>
   <div class="review-container">
     <div class="title-section">
-      <h2 class="show-title">{{ showName }}</h2>
+      <p class="show-name">{{ show.name }}</p>
       <div class="subtitle-row">
         <div class="subtitle">
           用户评价（共{{ reviewStatistics.totalCount }}条）
@@ -170,6 +170,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue';
+import axios from 'axios';
 import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { eventBus } from '@/utils/eventBus';
@@ -186,7 +187,23 @@ import {
 const route = useRoute();
 const performanceId = Number(route.params.id) || 1; // 使用默认ID或提供空数据处理
 
-const showName = ref('剧目名称'); // 将动态获取剧目名称
+// 定义 show 数据对象，包含排期字段
+const show = ref({
+  id: performanceId,
+  name: '',
+
+})
+
+// 获取剧目详情并处理排期
+const fetchShowDetails = async () => {
+    const response = await axios.get(`http://localhost:8080/api/musicals/${performanceId}`)
+    const data = response.data
+    show.value = {
+      id: data.id,
+      name: data.name,
+    }
+  }
+
 const reviews = ref([]);
 interface ReviewStatistics {
   totalCount: number;
@@ -467,12 +484,14 @@ const editMyReview = async () => {
 
 // 生命周期
 onMounted(async () => {
+  fetchShowDetails()
   eventBus.on('violation-changed', (pid) => {
     if (pid === performanceId) {
       loadReviewStats();   // 重新拉统计
       loadReviews();       // 重新拉列表
     }
   });
+
   await Promise.all([
     loadReviews()
     // loadIfReviewed() - 不再需要检查是否已评价，因为没有登录机制
@@ -497,12 +516,12 @@ onMounted(async () => {
   margin-bottom: 20px;
 }
 
-.show-title {
+.show-name {
   font-size: 32px;
   font-weight: bold;
   text-align: center;
   margin-top: 16px;
-  margin-bottom: 4px;
+  margin-bottom: 10px;
 }
 
 .subtitle-row {
