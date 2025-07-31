@@ -15,6 +15,10 @@
         </el-icon>
         {{ theater.locationName }}
       </div>
+      <MapContainer
+        :mapStyle="{ width: '70%', height: '300px', marginTop: '20px' }"
+        :locationName="'上海' + theater.locationName"
+      />
       <!-- 获取当前位置按钮 -->
       <div class="location-info">
         <button @click="startNavigation">一键导航</button>
@@ -42,10 +46,6 @@
           </div>
         </div>
       </el-dialog>
-      <MapContainer
-        :mapStyle="{ width: '70%', height: '300px', marginTop: '20px' }"
-        :locationName="'上海' + theater.locationName"
-      />
     </div>
 
     <!-- 中间：类型选择栏 + 店铺列表 -->

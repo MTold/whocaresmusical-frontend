@@ -183,7 +183,7 @@ export default defineComponent({
   border-radius: 5px;
   border: 1px solid #ddd;
   width: 700px;
-  font-size: 20px;
+  font-size: 15px
 }
 
 .search-btn {

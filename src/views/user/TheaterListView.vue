@@ -333,14 +333,11 @@ export default defineComponent({
   font-size: 16px;
   font-weight: bold;
   color: #333;
-  margin-top: 5px;
-  height:20px;
-  flex-grow: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-overflow: ellipsis;
+  margin-top: auto;
+  margin-bottom: 0;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 距离排序按钮样式 */
@@ -358,7 +355,7 @@ export default defineComponent({
   border-radius: 10px;
   cursor: pointer;
   transition: background 0.3s ease, transform 0.2s ease-in-out;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .distance-sort button:hover {
