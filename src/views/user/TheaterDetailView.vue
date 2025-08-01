@@ -22,18 +22,11 @@
       <!-- 获取当前位置按钮 -->
       <div class="location-info">
         <button @click="startNavigation">一键导航</button>
-        <div v-if="loading.value" class="loading-message">
-          正在获取位置...
-        </div>
-        <div v-if="userLocation.lat && userLocation.lng">
-        </div>
+        <div v-if="loading.value" class="loading-message">正在获取位置...</div>
+        <div v-if="userLocation.lat && userLocation.lng"></div>
       </div>
       <!-- 导航方式选择弹窗 -->
-      <el-dialog
-        v-model="showNavOptions"
-        title="选择导航方式"
-        width="400px"
-      >
+      <el-dialog v-model="showNavOptions" title="选择导航方式" width="400px">
         <div class="nav-options-modal">
           <el-radio-group v-model="navOption" class="nav-radio-group">
             <el-radio label="car">开车</el-radio>
@@ -56,7 +49,12 @@
         <div
           v-for="(type, idx) in shopCategorys"
           :key="type.value"
-          :class="[ 'sidebar-item', { active: selectedCategory === type.value }, idx === 0 ? 'first' : '', idx === shopCategorys.length - 1 ? 'last' : '' ]"
+          :class="[
+            'sidebar-item',
+            { active: selectedCategory === type.value },
+            idx === 0 ? 'first' : '',
+            idx === shopCategorys.length - 1 ? 'last' : '',
+          ]"
           @click="selectedCategory = type.value"
         >
           <span class="vertical-text">{{ type.label }}</span>
@@ -240,6 +238,7 @@ const submitReview = async () => {
     }
 
     shopReviews.value.push(newReviewItem)
+    newReview.content = '' // 清空输入框
   } catch (error) {
     const errorMessage = error.response?.data?.message || error.message || '未知错误'
     ElMessage.error('评价提交失败: ' + errorMessage)
@@ -288,16 +287,16 @@ const getCurrentLocation = () => {
 }
 
 const startNavigation = async () => {
-  loading.value = true;  // 开始加载
-  await getUserLocation();
+  loading.value = true // 开始加载
+  await getUserLocation()
 
   if (!userLocation.value.lat || !userLocation.value.lng) {
-    ElMessage.error('无法获取当前位置，请稍后再试');
-    loading.value = false;  // 结束加载
-    return;
+    ElMessage.error('无法获取当前位置，请稍后再试')
+    loading.value = false // 结束加载
+    return
   }
-  showNavOptions.value = true;
-  loading.value = false;  // 结束加载
+  showNavOptions.value = true
+  loading.value = false // 结束加载
 }
 
 const confirmNavigation = async () => {
