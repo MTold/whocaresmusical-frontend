@@ -1,27 +1,29 @@
 <template>
-  <div class="shop-manager">
-    <!-- 标题 -->
-    <h1 class="page-title">店铺管理</h1>
+  <!-- 标题容器 -->
+  <div class="admin-title-container">
+    <h1 class="admin-page-title">店铺管理</h1>
+  </div>
 
+  <!-- 页面容器 -->
+  <div class="admin-page-container">
     <!-- 顶部功能区 -->
-    <div class="control-area">
+    <div class="admin-control-area">
       <!-- 添加店铺按钮 -->
       <el-button type="primary" @click="openAddModal">
         <i class="fa fa-plus"></i> 添加店铺
       </el-button>
 
       <!-- 占位空白 -->
-      <span class="divider"></span>
+      <span class="admin-divider"></span>
 
       <!-- 搜索框 -->
-      <div class="search-wrapper">
+      <div class="admin-search-wrapper">
         <el-input
           v-model="searchParams.shopName"
           placeholder="请输入店铺名称关键词"
           clearable
           @keyup.enter="ClickSearchShops"
           @clear="ClickSearchShops"
-          class="search-input"
         />
         <el-input
           v-model="searchParams.theaterKeyword"
@@ -29,14 +31,13 @@
           clearable
           @keyup.enter="ClickSearchShops"
           @clear="ClickSearchShops"
-          class="search-input"
         />
         <el-button type="primary" @click="ClickSearchShops">搜索</el-button>
       </div>
     </div>
 
     <!-- 表格区域 -->
-    <div class="table-wrapper">
+    <div class="admin-table-wrapper">
       <el-table
         :data="shopList"
         border
@@ -59,7 +60,7 @@
         </el-table-column>
         <el-table-column label="关联剧院" width="300">
           <template #default="{ row }">
-            <span v-for="theater in row.theaters" :key="theater.id" class="badge">
+            <span v-for="theater in row.theaters" :key="theater.id" class="admin-badge">
               {{ theater.name }}
             </span>
           </template>
@@ -77,7 +78,7 @@
       </el-table>
 
       <!-- 分页 -->
-      <div class="pagination-wrapper">
+      <div class="admin-pagination-wrapper">
         <el-pagination
           v-model:current-page="currentPage"
           :page-size="pageSize"
@@ -113,7 +114,6 @@
         <el-form-item label="店铺类型" prop="shop.category">
           <el-select v-model="formData.shop.category" placeholder="请选择店铺类型">
             <el-option label="餐饮" :value="1" />
-            <!-- 数字1 -->
             <el-option label="住宿" :value="2" />
             <el-option label="景点" :value="3" />
           </el-select>
@@ -125,6 +125,7 @@
               v-model="formData.theaterIds[index]"
               placeholder="请选择剧院"
               style="width: 80%"
+              clearable
             >
               <el-option
                 v-for="theater in theaters"
@@ -133,28 +134,30 @@
                 :value="theater.id"
               />
             </el-select>
-            <el-button
-              v-if="index > 0"
-              size="mini"
-              type="danger"
-              icon="Delete"
-              @click="removeTheaterSelect(index)"
-              style="margin-left: 10px"
-            />
-            <el-button
-              v-if="index === formData.theaterIds.length - 1"
-              size="mini"
-              type="success"
-              icon="Plus"
-              @click="addTheaterSelect"
-              style="margin-left: 10px"
-            />
+            <div class="theater-select-buttons">
+              <el-button
+                v-if="index > 0"
+                size="mini"
+                type="danger"
+                @click="removeTheaterSelect(index)"
+              >
+                <el-icon><Minus /></el-icon>
+              </el-button>
+              <el-button
+                v-if="index === formData.theaterIds.length - 1"
+                size="mini"
+                type="success"
+                @click="addTheaterSelect"
+              >
+                <el-icon><Plus /></el-icon>
+              </el-button>
+            </div>
           </div>
         </el-form-item>
       </el-form>
 
       <template #footer>
-        <span class="dialog-footer">
+        <span class="admin-dialog-footer">
           <el-button @click="closeModal">取消</el-button>
           <el-button type="primary" @click="handleFormSubmit">确认</el-button>
         </span>
@@ -164,10 +167,12 @@
 </template>
 
 <script setup lang="ts">
+// 脚本部分保持不变，与原代码一致
 import { ref, computed, onMounted, watch, reactive, nextTick } from 'vue'
 import { ElMessage, ElMessageBox, ElForm, ElFormItem } from 'element-plus'
 import { searchShops, getAllTheaters, addShop, updateShop, deleteShop } from '@/api/shop'
 import type { Shop, ShopWithTheatersDTO, Theater, Page } from '@/api/shop'
+import { Plus, Minus } from '@element-plus/icons-vue'
 
 // 类型定义
 type ShopCategory = {
@@ -176,7 +181,6 @@ type ShopCategory = {
 }
 
 // 状态管理
-//const shopList = ref<ShopWithTheatersDTO[]>([])
 const theaters = ref<Theater[]>([])
 const loading = ref(false)
 const error = ref('')
@@ -204,14 +208,6 @@ const pageSize = ref(10)
 const isModalVisible = ref(false)
 const isEditing = ref(false)
 const deleteShopId = ref(0)
-
-// 计算属性：分页后的店铺列表
-//const totalShops = computed(() => shopList.value.length)
-const paginatedShops = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return shopList.value.slice(start, end)
-})
 
 // 表单数据与验证规则
 const formData = reactive<ShopWithTheatersDTO>({
@@ -372,13 +368,6 @@ const handleFormSubmit = async () => {
       shop: { ...formData.shop }, // 仅包含shop信息
       theaterIds: formData.theaterIds.filter((id) => id) as number[], // 仅包含有效的剧院ID
     }
-    /* // 3. 调试输出（检查数据格式和类型）
-    console.log('提交数据:', submitData)
-    console.log('category类型:', typeof submitData.shop.category) // 应输出"number"
-    console.log(
-      'theaterIds元素类型:',
-      submitData.theaterIds.map((id) => typeof id),
-    ) // 应全为"number" */
 
     try {
       let result: boolean
@@ -460,61 +449,10 @@ const handleSizeChange = (size: number) => {
 </script>
 
 <style scoped>
-.shop-manager {
-  padding: 20px;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  position: absolute;
-  top: 60px;
-  left: 15%;
-  right: 20px;
-}
+/* 保留页面特有样式，通用样式已通过外部通用样式表控制 */
 
-.page-title {
-  font-size: 35px;
-  font-weight: bold;
-  font-family: '宋体', serif;
-  color: #59310e;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.control-area {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.divider {
-  width: 60px;
-  flex-shrink: 0;
-}
-
-.search-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.search-input {
-  width: 200px;
-}
-
-.table-wrapper {
-  margin-top: 20px;
-}
-
-.pagination-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-.badge {
+/* 关联剧院标签样式 */
+.admin-badge {
   display: inline-block;
   background: #f5f5f5;
   color: #59310e;
@@ -525,86 +463,44 @@ const handleSizeChange = (size: number) => {
   font-size: 12px;
 }
 
+/* 剧院选择项样式 - 改为垂直布局 */
 .theater-select-item {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 15px; /* 增加每个下拉框之间的垂直间距 */
+  width: 100%;
 }
 
-.dialog-footer {
-  text-align: right;
+/* 按钮容器样式 */
+.theater-select-buttons {
+  margin-left: 10px;
+  display: flex;
+  gap: 5px;
 }
 
-/* 颜色调整（与资讯管理页面统一） */
-.el-input__inner {
-  border-color: #bfa074;
-}
-
-.el-input__inner:focus {
-  border-color: #a0522d;
-}
-
-.el-button {
-  color: #ffffff;
-  background-color: #e6c9b0;
-  border-color: #a0522d;
-}
-
-.el-button.is-active,
-.el-button:active {
-  background-color: #a0522d;
-  border-color: #7a3a1d;
-}
-
-.el-button--primary {
-  background-color: #a0522d;
-  border-color: #7a3a1d;
-}
-
-.el-button--primary.is-active,
-.el-button--primary:active {
-  background-color: #7a3a1d;
-  border-color: #59310e;
-}
-
-.el-button--danger {
-  background-color: #d75725;
-  border-color: #c0392b;
-}
-
-.el-select__input:focus {
-  border-color: #a0522d;
-}
-
-.el-table th {
-  background-color: #f9f2ea;
-}
-
-.el-table tr:hover > td {
-  background-color: #fef8f2;
-}
-
-/* 响应式调整 */
-@media (max-width: 1200px) {
-  .shop-manager {
-    left: 20px;
-  }
-}
-
+/* 响应式调整补充 */
 @media (max-width: 768px) {
-  .control-area {
+  .theater-select-item {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
   }
 
-  .search-wrapper {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-
-  .search-input {
-    width: 100%;
+  .theater-select-item .el-select {
+    width: 100% !important;
     margin-bottom: 10px;
   }
+
+  .theater-select-buttons {
+    margin-left: 0;
+    margin-bottom: 10px;
+  }
+}
+
+/* 分页按钮间距 */
+.admin-page-container .el-pagination__pager li {
+  margin-right: 8px; /* 右侧间隙 */
+}
+.admin-page-container .el-pagination__pager li:last-child {
+  margin-right: 0; /* 最后一个页码按钮去掉右侧间隙 */
 }
 </style>
