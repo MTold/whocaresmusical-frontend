@@ -106,27 +106,7 @@
 <script setup lang="ts">
 import { ref, computed, defineProps, defineEmits, toRefs, watch } from 'vue'
 import type { Shop, ShopWithTheatersDTO, Theater } from '@/api/shop'; // 导入统一类型
- // 导入统一类型
-// 类型定义（部分需要的类型）
-/* interface Shop {
-  id: number
-  name: string
-  address: string
-  category: 1 | 2 | 3
-  image?: string
-  gaodeId?: string
-}
 
-interface Theater {
-  id: number
-  name: string
-  locationName: string
-}
-
-interface ShopWithTheatersDTO {
-  shop: Shop
-  theaterIds: (number | null)[]
-} */
 
 type ShopCategory = {
   value: 1 | 2 | 3

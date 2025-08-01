@@ -112,9 +112,10 @@
         </el-form-item>
         <el-form-item label="店铺类型" prop="shop.category">
           <el-select v-model="formData.shop.category" placeholder="请选择店铺类型">
-            <el-option label="餐饮" value="1" />
-            <el-option label="住宿" value="2" />
-            <el-option label="景点" value="3" />
+            <el-option label="餐饮" :value="1" />
+            <!-- 数字1 -->
+            <el-option label="住宿" :value="2" />
+            <el-option label="景点" :value="3" />
           </el-select>
         </el-form-item>
 
@@ -260,18 +261,6 @@ const fetchShops = async (shopName?: string, theaterKeyword?: string) => {
     loading.value = false
   }
 }
-/* const fetchShops = async (shopName?: string, theaterKeyword?: string) => {
-  loading.value = true
-  try {
-    const result = await searchShops(shopName, theaterKeyword)
-    shopList.value = result
-  } catch (err: any) {
-    ElMessage.error(err.message || '获取店铺列表失败')
-    shopList.value = []
-  } finally {
-    loading.value = false
-  }
-} */
 
 // 获取所有剧院
 const fetchTheaters = async () => {
@@ -326,7 +315,7 @@ const openAddModal = () => {
   isEditing.value = false
   // 重置表单
   formData.shop = {
-    id: 0,
+    id: undefined as unknown as number, // 使用undefined避免类型错误
     name: '',
     address: '',
     category: 1,
@@ -380,9 +369,16 @@ const handleFormSubmit = async () => {
 
     // 过滤空的剧院ID
     const submitData = {
-      ...formData,
-      theaterIds: formData.theaterIds.filter((id) => id) as number[],
+      shop: { ...formData.shop }, // 仅包含shop信息
+      theaterIds: formData.theaterIds.filter((id) => id) as number[], // 仅包含有效的剧院ID
     }
+    /* // 3. 调试输出（检查数据格式和类型）
+    console.log('提交数据:', submitData)
+    console.log('category类型:', typeof submitData.shop.category) // 应输出"number"
+    console.log(
+      'theaterIds元素类型:',
+      submitData.theaterIds.map((id) => typeof id),
+    ) // 应全为"number" */
 
     try {
       let result: boolean
@@ -461,15 +457,6 @@ const handleSizeChange = (size: number) => {
   currentPage.value = 1 // 重置到第一页
   fetchShops(searchParams.shopName, searchParams.theaterKeyword) // 重新请求
 }
-// 原分页事件
-/* const handleSizeChange = (size: number) => {
-  pageSize.value = size
-  currentPage.value = 1
-}
-
-const handlePageChange = (page: number) => {
-  currentPage.value = page
-} */
 </script>
 
 <style scoped>

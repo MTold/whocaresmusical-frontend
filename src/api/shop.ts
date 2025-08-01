@@ -20,9 +20,7 @@ export const getShopsByTheaterId = async (theaterId: number) => {
 }
 
 //为店铺管理新增
-// src/api/shopService.ts
-//import service from './index';
-//import { Shop, Theater, ShopWithTheatersDTO } from '../types/shop';
+
 export interface Shop {
   id: number
   name: string
@@ -42,11 +40,7 @@ export interface Theater {
   latitude: string
 }
 
-/* export interface ShopWithTheatersDTO {
-  shop: Shop
-  theaterIds: number[] // 关联的剧院ID列表
-  theaters: Theater[] // 关联的剧院详情
-} */
+
 export interface ShopWithTheatersDTO {
   shop: Shop
   theaterIds: (number | null)[]
@@ -63,18 +57,6 @@ export interface Page<T> {
 }
 
 
-// 搜索店铺
-/* export const searchShops = (shopName?: string, theaterKeyword?: string) => {
-  return shopApi.get<ShopWithTheatersDTO[]>('/shops/search', {
-    params: { shopName, theaterKeyword },
-  })
-} */
-/* export const searchShops = async (shopName?: string, theaterKeyword?: string) => {
-  const response = await shopApi.get('/shops/search', {
-    params: { shopName, theaterKeyword },
-  })
-  return response.data // 直接返回数据部分
-} */
 export const searchShops = async (
   shopName?: string,
   theaterKeyword?: string,
@@ -108,9 +90,7 @@ export const deleteShop = (id: number) => {
 }
 
 // 获取所有剧院
-/* export const getAllTheaters = () => {
-  return shopApi.get<Theater[]>('/shops/theaters')
-} */
+
 export const getAllTheaters = async () => {
   const response = await shopApi.get<Theater[]>('/shops/theaters')
   return response.data // 直接返回数据数组
