@@ -37,9 +37,20 @@ export const deleteTheater = async (id: number) => {
   return res.data;
 };
 
+export const createTheater = async (data: any) => {
+  try {
+    const res = await theaterApi.post('', data);
+    return res.data;
+  } catch (error) {
+    console.error('Error creating theater:', error);
+    throw error;
+  }
+};
+
 export default {
   getAllTheaters,
   getTheaterById,
   updateTheater,
   deleteTheater,
+  createTheater,
 };
