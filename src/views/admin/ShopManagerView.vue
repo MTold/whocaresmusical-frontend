@@ -495,7 +495,7 @@ const handleSizeChange = (size: number) => {
     margin-bottom: 10px;
   }
 }
-
+/* 分页按钮间距 */
 /* 分页按钮间距 */
 .admin-page-container .el-pagination__pager li {
   margin-right: 8px; /* 右侧间隙 */
