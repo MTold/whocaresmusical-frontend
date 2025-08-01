@@ -23,6 +23,12 @@
         </div>
       </div>
 
+      <!-- 排序按钮 -->
+      <div class="distance-sort">
+        <button @click="sortByName">按字母排序</button>
+        <button @click="sortByRating">按高分优先</button> <!-- 新增按钮 -->
+      </div>
+
       <!-- 显示剧目列表 -->
       <div class="shows-gallery">
         <!-- 加载中的提示 -->
@@ -69,53 +75,60 @@ export default defineComponent({
     const searchQuery = ref(''); // 搜索内容
     const errorMessage = ref(''); // 错误信息
     const showFutureOnly = ref(false); // 控制筛选：只看有未来演出计划的
-
     const fetchMusicals = async () => {
       try {
         const cachedMusicals = localStorage.getItem('musicals');
         const cachedTimestamp = localStorage.getItem('musicalsTimestamp');
-        const cacheExpirationTime = 10 * 60 * 1000; // 缓存有效时间
+        const cacheExpirationTime = 60 * 1000; // 10分钟缓存
 
         if (cachedMusicals && cachedTimestamp) {
           const currentTime = new Date().getTime();
           const timeDifference = currentTime - parseInt(cachedTimestamp);
 
-          // 如果缓存过期，则重新请求数据
           if (timeDifference < cacheExpirationTime) {
             const parsedMusicals = JSON.parse(cachedMusicals);
-            musicals.value = parsedMusicals;
-            musicals.value = sortByName(musicals.value);
+            musicals.value = Array.isArray(parsedMusicals) ? parsedMusicals : [];
+            const savedSort = localStorage.getItem('musicalSort');
+            if (savedSort === 'rating') sortByRating();
+            else sortByName(); // 默认按字母排序
+
             loading.value = false;
             return;
           }
         }
-
-        // 如果缓存无效或不存在，重新请求数据
         const response = await musicalApi.getAllMusicals();
-        musicals.value = response;
-        musicals.value = sortByName(musicals.value);
+        musicals.value = Array.isArray(response) ? response : [];
+        const savedSort = localStorage.getItem('musicalSort');
+        if (savedSort === 'rating') sortByRating();
+        else sortByName(); // 默认按字母排序
+
         localStorage.setItem('musicals', JSON.stringify(response));
-        localStorage.setItem('musicalsTimestamp', new Date().getTime().toString()); // 存储当前时间戳
+        localStorage.setItem('musicalsTimestamp', new Date().getTime().toString());
         loading.value = false;
       } catch (error) {
         console.error('获取音乐剧失败:', error);
         errorMessage.value = '无法加载音乐剧数据，请稍后再试。';
+        musicals.value = []; // 出错时设为空数组
+        loading.value = false;
       }
     };
-
-    // 按名称首字母排序
-    const sortByName = (musicals: any[]) => {
-      return musicals.sort((a, b) => {
-        return a.name.localeCompare(b.name); // 按名称进行排序
-      });
+    const sortByName = () => {
+      if (!musicals.value || !Array.isArray(musicals.value)) {
+        return; // 如果数据无效，直接返回
+      }
+      musicals.value.sort((a, b) => a.name.localeCompare(b.name));
+      localStorage.setItem('musicalSort', 'name');
     };
 
-    // 按评分排序
     const sortByRating = () => {
-      musicals.value = musicals.value.sort((a, b) => b.averageRating - a.averageRating); // 按评分从高到低排序
-    }
+      if (!musicals.value || !Array.isArray(musicals.value)) {
+        return; // 如果数据无效，直接返回
+      }
+      musicals.value.sort((a, b) => b.averageRating - a.averageRating);
+      localStorage.setItem('musicalSort', 'rating');
+    };
 
-  // 过滤剧目，返回名称包含搜索内容的剧目，并根据筛选条件筛选
+// 过滤剧目，返回名称包含搜索内容的剧目，并根据筛选条件筛选
     const filteredMusicals = computed(() => {
       return musicals.value.filter((musical) => {
         const matchesSearch = musical.name.toLowerCase().includes(searchQuery.value.toLowerCase());
@@ -128,6 +141,12 @@ export default defineComponent({
       });
     });
 
+// 页面加载时恢复排序状态
+    onMounted(() => {
+      fetchMusicals();
+    });
+
+
     // 搜索方法
     const onSearch = () => {
       searchQuery.value = inputQuery.value; // 更新搜索内容
@@ -138,10 +157,7 @@ export default defineComponent({
       router.push(`/shows/${id}`);
     };
 
-    // 页面加载时获取数据
-    onMounted(() => {
-      fetchMusicals();
-    });
+
 
     return {
       inputQuery,

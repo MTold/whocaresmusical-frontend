@@ -47,7 +47,7 @@
         <el-table-column label="操作" width="250">
           <template #default="scope">
             <el-button size="small" @click="editMusical(scope.row)">编辑</el-button>
-<!--            <el-button size="small" @click="viewSchedule(scope.row)">查看排期</el-button>-->
+            <el-button size="small" @click="viewSchedule(scope.row)">查看排期</el-button>
             <el-button size="small" type="danger" @click="deleteMusical(scope.row.id)">删除</el-button>
           </template>
         </el-table-column>
@@ -96,6 +96,7 @@
         border
         empty-text="暂无排期信息"
       >
+        <el-table-column label="剧院" prop="theaterId" />
         <el-table-column label="日期" prop="date" />
         <el-table-column label="时间" prop="time" />
         <el-table-column label="演员阵容" prop="cast" />
@@ -115,11 +116,29 @@
     <!-- 添加/编辑排期弹窗 -->
     <el-dialog v-model="scheduleEditDialogVisible" :title="isEditingSchedule ? '编辑排期' : '添加排期'" width="600px">
       <el-form :model="scheduleForm" label-width="80px">
+        <el-form-item label="选择剧院" prop="theaterId">
+          <el-select
+            v-model="scheduleForm.theaterId"
+            filterable
+            remote
+            reserve-keyword
+            placeholder="请输入剧院名称搜索"
+            :remote-method="searchTheaters"
+            :loading="theaterLoading"
+          >
+            <el-option
+              v-for="theater in theaterOptions"
+              :key="theater.id"
+              :label="theater.name"
+              :value="theater.id"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="日期" prop="date">
           <el-date-picker v-model="scheduleForm.date" type="date" placeholder="选择日期" />
         </el-form-item>
         <el-form-item label="时间" prop="time">
-          <el-time-picker v-model="scheduleForm.time" placeholder="选择时间" />
+          <el-input v-model="scheduleForm.time" placeholder="选择时间" />
         </el-form-item>
         <el-form-item label="演员阵容" prop="cast">
           <el-input v-model="scheduleForm.cast" placeholder="请输入演员阵容" />
@@ -137,6 +156,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import musicalApi from '@/api/musical'
+import showApi, { createShow, getShowsByMusicalId } from '@/api/show'
+import { getAllTheaters } from '@/api/theater'; // 导入获取剧院的方法
 
 
 const musicals = ref<any[]>([])
@@ -150,6 +171,10 @@ const keyword = ref('')
 const isEditing = ref(false)
 const isEditingSchedule = ref(false)
 const musical = ref<any>({})
+const currentMusicalId = ref<number | null>(null);
+const theaterOptions = ref<Array<{id: number, name: string}>>([]);
+const theaterLoading = ref(false);
+
 
 // 分页相关
 const currentPage = ref(1)
@@ -228,23 +253,55 @@ const handleSearch = () => {
   fetchMusicals()
 }
 
+
+
 // 查看排期管理
-const viewSchedule = (musicalItem: any) => {
-  musical.value = { ...musicalItem }  // 复制当前剧目数据
-  scheduleDialogVisible.value = true  // 显示排期弹窗
-}
+const viewSchedule = async (musicalItem: any) => {
+  musical.value = { ...musicalItem };  // 复制当前剧目信息
+  currentMusicalId.value = musicalItem.id;  // 存储当前剧目ID
+
+  try {
+    // 使用接口获取该剧目的所有排期数据
+    const shows = await getShowsByMusicalId(musicalItem.id);
+    musical.value.shows = shows;
+    scheduleDialogVisible.value = true;
+  } catch (error) {
+    ElMessage.error('加载排期数据失败');
+  }
+};
 
 // 添加排期
 const addSchedule = () => {
   isEditingSchedule.value = false
-  scheduleForm.value = { date: '', time: '', cast: '' }  // 清空表单数据
-  scheduleEditDialogVisible.value = true
-}
+  scheduleForm.value = { theaterId: '', date: '', time: '', cast: '' }  // 清空表单数据
+  scheduleForm.value.musicalId = currentMusicalId.value;
+  scheduleEditDialogVisible.value = true;
+};
+// 搜索剧院方法
+const searchTheaters = async (query: string) => {
+  if (query) {
+    theaterLoading.value = true;
+    try {
+      const allTheaters = await getAllTheaters();
+      theaterOptions.value = allTheaters.filter(theater =>
+        theater.name.includes(query)
+      );
+    } catch (error) {
+      console.error('搜索剧院失败:', error);
+      ElMessage.error('获取剧院列表失败');
+    } finally {
+      theaterLoading.value = false;
+    }
+  } else {
+    theaterOptions.value = [];
+  }
+};
 
 // 编辑排期
 const editSchedule = (schedule: any) => {
   isEditingSchedule.value = true
   scheduleForm.value = { ...schedule }
+  scheduleForm.value.musicalId = currentMusicalId.value;
   scheduleEditDialogVisible.value = true
 }
 
@@ -254,7 +311,7 @@ const deleteSchedule = async (id: number) => {
     await ElMessageBox.confirm('确定删除此排期吗？', '提示', {
       type: 'warning',
     })
-    await musicalApi.deleteSchedule(id)
+    await showApi.deleteShow(id)
     ElMessage.success('删除成功')
     fetchMusicals()  // Refresh musical data
   } catch (error) {
@@ -267,11 +324,11 @@ const saveSchedule = async () => {
   try {
     if (scheduleForm.value.id) {
       // 编辑排期
-      await musicalApi.updateSchedule(scheduleForm.value.id, scheduleForm.value)
+      await showApi.updateShow(scheduleForm.value.id, scheduleForm.value)
       ElMessage.success('排期更新成功')
     } else {
       // 添加排期
-      await musicalApi.createSchedule(scheduleForm.value)
+      await showApi.createShow(scheduleForm.value)
       ElMessage.success('排期添加成功')
     }
     scheduleEditDialogVisible.value = false

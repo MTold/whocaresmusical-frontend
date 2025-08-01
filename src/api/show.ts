@@ -27,7 +27,6 @@ export const getMusicals = async (): Promise<any[]> => {
   }
 };
 
-
 // 获取指定 musical_id 的所有演出
 export const getShowsByMusicalId = async (musicalId: number) => {
   try {
@@ -51,12 +50,12 @@ export const getShowsByTheaterId = async (theaterId: number) => {
 };
 
 // 创建排期
-export const createShow = async (musicalId: number, data: any) => {
+export const createShow = async (data: any) => {
   try {
-    const response = await showApi.post(`/musical/${musicalId}`, data);
+    const response = await showApi.post('', data);
     return response.data;
   } catch (error) {
-    console.error(`Error creating show for musical ${musicalId}:`, error);
+    console.error(`Error creating show:`, error);
     throw error;
   }
 };
