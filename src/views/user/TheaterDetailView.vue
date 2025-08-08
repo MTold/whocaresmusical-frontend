@@ -240,6 +240,7 @@ const submitReview = async () => {
     }
 
     shopReviews.value.push(newReviewItem)
+    newReview.content = ''
   } catch (error) {
     const errorMessage = error.response?.data?.message || error.message || '未知错误'
     ElMessage.error('评价提交失败: ' + errorMessage)
@@ -301,7 +302,8 @@ const startNavigation = async () => {
 }
 
 const confirmNavigation = async () => {
-  const navUrl = `https://ditu.amap.com/dir?from[lnglat]=${userLocation.value.lng},${userLocation.value.lat}&to[lnglat]=${theater.value.longitude},${theater.value.latitude}&to[name]=${theater.value.name}&type=${navOption.value}&policy=1`
+  // const navUrl = `https://ditu.amap.com/dir?from[lnglat]=${userLocation.value.lng},${userLocation.value.lat}&to[lnglat]=${theater.value.longitude},${theater.value.latitude}&to[name]=${theater.value.name}&type=${navOption.value}&policy=1`
+  const navUrl = `https://ditu.amap.com/dir?from[name]=同济大学四平路校区西北一&from[lnglat]=121.50116,31.285286&from[id]=B00155KGI4&from[poitype]=&from[adcode]=310000&from[modxy]=121.50116,31.285286&to[lnglat]=${theater.value.longitude},${theater.value.latitude}&to[name]=${theater.value.name}&to[id]=to&type=${navOption.value}&policy=1`;
   window.open(navUrl, '_blank', 'noopener,noreferrer')
   showNavOptions.value = false
 }

@@ -243,7 +243,7 @@ const saveMusical = async () => {
 
 // 添加剧目
 const handleAddMusical = () => {
-  editForm.value = { id:'', name: '', info: '', imageUrl: '' } // 清空表单数据
+  editForm.value = { id:'', name: '', info: '', imageUrl: '',hasFutureSchedule:'1' } // 清空表单数据
   isEditing.value = false
   editDialogVisible.value = true
 }

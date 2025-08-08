@@ -25,8 +25,15 @@
       </div>
     </div>
 
+
     <!-- 未来演出计划表格 -->
     <div class="schedule-table">
+      <!-- 购票按钮，只有当 hasFutureSchedule 为 1 时才显示 -->
+      <div v-if="hasFutureSchedule" class="ticket-button">
+        <el-button type="primary" @click="goToTicketPage">
+          前往购票
+        </el-button>
+      </div>
       <h2>未来演出计划</h2>
       <table v-if="show.futureSchedules.length > 0">
         <thead>
@@ -93,6 +100,7 @@ import axios from 'axios'
 const route = useRoute()
 const router = useRouter()
 let showId = Number(route.params.id)
+const hasFutureSchedule = ref(false)
 
 // 定义 show 数据对象，包含排期字段
 const show = ref({
@@ -151,6 +159,8 @@ const fetchShowDetails = async () => {
       futureSchedules,
       pastSchedules,
     }
+    hasFutureSchedule.value = futureSchedules.length > 0
+
     // 如果有未来排期，读取最近一场排期的 ID
     if (futureSchedules.length > 0) {
       fetchTheaterInfo(showId)
@@ -256,6 +266,11 @@ const handleFavoriteChange = (event: CustomEvent) => {
   if (event.detail.musicalId === showId) {
     isFavorite.value = event.detail.isFavorite
   }
+}
+const goToTicketPage = () => {
+  // 拼接剧目名称和 "上海"，并进行 URL 编码
+  const ticketUrl = `https://search.damai.cn/search.html?keyword=${encodeURIComponent(show.value.name + ' 上海')}`
+  window.open(ticketUrl, '_blank') // 新标签页打开购票页面
 }
 
 onMounted(() => {
@@ -369,6 +384,7 @@ button {
   border-radius: 5px;
   cursor: pointer;
 }
+
 
 /* 响应式样式 */
 @media (max-width: 768px) {

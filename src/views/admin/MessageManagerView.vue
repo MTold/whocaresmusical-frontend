@@ -50,7 +50,6 @@
         <el-table-column
           prop="content"
           label="内容"
-          width="300"
           show-overflow-tooltip
         />
         <el-table-column
@@ -78,7 +77,7 @@
           align="center"
         >
           <template #default="{ row }">
-            <el-button size="small" type="primary" link @click="handleEdit(row)">编辑</el-button>
+<!--            <el-button size="small" type="primary" link @click="handleEdit(row)">编辑</el-button>-->
             <el-button size="small" type="danger" link @click="handleDelete(row.messageId)">删除</el-button>
             <el-button size="small" type="success" link @click="handleView(row)">查看</el-button>
           </template>

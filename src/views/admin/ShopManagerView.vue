@@ -204,7 +204,7 @@ const searchParams = reactive({
 })
 
 const currentPage = ref(1)
-const pageSize = ref(10)
+const pageSize = ref(5)
 const isModalVisible = ref(false)
 const isEditing = ref(false)
 const deleteShopId = ref(0)

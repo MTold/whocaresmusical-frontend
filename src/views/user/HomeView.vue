@@ -606,7 +606,7 @@ onMounted(async () => {
   color: #a0522d;
   font-size: 24px;
   margin-top: 0; /* 移除顶部边距 */
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   font-family: '黑体';
 }
 
